@@ -85,7 +85,8 @@ def make_plot(args):
                         fformats=args.fformats,
                         binwnorm=1 if distribution == 'mjj' else None,
                     )
-                except KeyError:
+                except KeyError as e:
+                    print(str(e))
                     print(f'WARNING: {data_region} not found in inputs, skipping.')
                     continue
 

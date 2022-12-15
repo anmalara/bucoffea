@@ -190,7 +190,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # Already pre-filtered!
         # All leptons are at least loose
         # Check out setup_candidates for filtering details
-        met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons, jet_images, jet_images_Et = setup_candidates(df, cfg)
+        met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons = setup_candidates(df, cfg)
 
         # Remove jets in accordance with the noise recipe
         if not cfg.RUN.ULEGACYV8 and df['year'] == 2017:
@@ -1067,7 +1067,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     # Uncertainties on neural network score
                     for score_type in cfg.NN_MODELS.UNCERTAINTIES:
                         if score_type not in cfg.NN_MODELS.RUN:
-                            continue
+                            #continue
+                            break
 
                         ezfill(f'{score_type}_unc',
                             score=df[score_type][:, 1][mask],
@@ -1165,7 +1166,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     )
                     for score_type in cfg.NN_MODELS.UNCERTAINTIES:
                         if score_type not in cfg.NN_MODELS.RUN:
-                            continue
+                            #continue
+                            break
                         
                         ezfill(f'{score_type}_unc',
                             score=df[score_type][:, 1][mask],
@@ -1193,7 +1195,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         )
                         for score_type in cfg.NN_MODELS.UNCERTAINTIES:
                             if score_type not in cfg.NN_MODELS.RUN:
-                                continue
+                                #continue
+                                break
 
                             ezfill(f'{score_type}_unc',
                                 score=df[score_type][:, 1][mask],
@@ -1251,7 +1254,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         
                         for score_type in cfg.NN_MODELS.UNCERTAINTIES:
                             if score_type not in cfg.NN_MODELS.RUN:
-                                continue
+                                #continue
+                                break
 
                             ezfill(
                                 f'{score_type}_unc',
@@ -1271,7 +1275,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
                     for score_type in cfg.NN_MODELS.UNCERTAINTIES:
                         if score_type not in cfg.NN_MODELS.RUN:
-                            continue
+                            #continue
+                            break
 
                         ezfill(f'{score_type}_noewk',   score=df[score_type][:, 1][mask],   weight=weight_noewk)
                             

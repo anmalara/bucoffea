@@ -500,10 +500,10 @@ def setup_candidates(df, cfg):
     met_phi = df[f'{met_branch}_phi{jes_suffix_met}']
 
     # Jet images
-    jet_images = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_energies'])
-    jet_images_Et = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_transverseEnergies'])
+    #jet_images = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_energies'])
+    #jet_images_Et = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_transverseEnergies'])
     
-    return met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons, jet_images, jet_images_Et
+    return met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons
 
 def monojet_regions(cfg):
     common_cuts = [

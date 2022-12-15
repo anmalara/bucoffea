@@ -9,16 +9,16 @@ common_distributions = [
     'mjj',
     'detajj',
     'dphijj',
-    'cnn_score',
-    'dnn_score',
+    #'cnn_score',
+    #'dnn_score',
     'recoil',
     'ak4_eta0',
     'ak4_eta1',
     'ak4_pt0',
     'ak4_pt1',
-    'ak4_central_eta',
-    'ak4_forward_eta',
-    'dphijr',
+    #'ak4_central_eta',
+    #'ak4_forward_eta',
+    #'dphijr',
 ]
 
 # Distributions to plot for each region
