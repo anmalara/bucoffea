@@ -138,12 +138,10 @@ default:
     hem: True
   nn_models:
     run:
-#      - cnn_score
-      - bar
+      - cnn_score
     uncertainties:
-#      - cnn_score
-#      - dnn_score
-      - blah
+      - cnn_score
+      - dnn_score
     convnet:
       path: models/model_2022-05-20_batch100_dropout0_25_regular
     deepnet:

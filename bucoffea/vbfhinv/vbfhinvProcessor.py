@@ -310,25 +310,25 @@ class vbfhinvProcessor(processor.ProcessorABC):
         df['detajj'] = np.abs(diak4.i0.eta - diak4.i1.eta).max()
 
         # Features from the dijet pair with highest invariant mass (to be used by the DNN)
-        if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
-            diak4_all = ak4.distincts()
-            highest_mass_diak4 = diak4_all[diak4_all.mass.argmax()]
-            df["mjj_maxmjj"] = highest_mass_diak4.mass.max()
-            df["dphijj_maxmjj"] = dphi(highest_mass_diak4.i0.phi.min(), highest_mass_diak4.i1.phi.max())
-            df["detajj_maxmjj"] = (highest_mass_diak4.i0.eta.min() - highest_mass_diak4.i1.eta.max())
+        #if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
+            #diak4_all = ak4.distincts()
+            #highest_mass_diak4 = diak4_all[diak4_all.mass.argmax()]
+            #df["mjj_maxmjj"] = highest_mass_diak4.mass.max()
+            #df["dphijj_maxmjj"] = dphi(highest_mass_diak4.i0.phi.min(), highest_mass_diak4.i1.phi.max())
+            #df["detajj_maxmjj"] = (highest_mass_diak4.i0.eta.min() - highest_mass_diak4.i1.eta.max())
         
-            df["ak4_pt0"] = diak4.i0.pt.max()
-            df["ak4_eta0"] = diak4.i0.eta.max()
-            df["ak4_pt1"] = diak4.i1.pt.max()
-            df["ak4_eta1"] = diak4.i1.eta.max()
+            #df["ak4_pt0"] = diak4.i0.pt.max()
+            #df["ak4_eta0"] = diak4.i0.eta.max()
+            #df["ak4_pt1"] = diak4.i1.pt.max()
+            #df["ak4_eta1"] = diak4.i1.eta.max()
 
-            df["ak4_pt0_maxmjj"] = highest_mass_diak4.i0.pt.max()
-            df["ak4_eta0_maxmjj"] = highest_mass_diak4.i0.eta.max()
-            df["ak4_pt1_maxmjj"] = highest_mass_diak4.i1.pt.max()
-            df["ak4_eta1_maxmjj"] = highest_mass_diak4.i1.eta.max()
+            #df["ak4_pt0_maxmjj"] = highest_mass_diak4.i0.pt.max()
+            #df["ak4_eta0_maxmjj"] = highest_mass_diak4.i0.eta.max()
+            #df["ak4_pt1_maxmjj"] = highest_mass_diak4.i1.pt.max()
+            #df["ak4_eta1_maxmjj"] = highest_mass_diak4.i1.eta.max()
     
-            df['ak4_mt0'] = mt(diak4.i0.pt, diak4.i0.phi, met_pt, met_phi).max()
-            df['ak4_mt1'] = mt(diak4.i1.pt, diak4.i1.phi, met_pt, met_phi).max()
+            #df['ak4_mt0'] = mt(diak4.i0.pt, diak4.i0.phi, met_pt, met_phi).max()
+            #df['ak4_mt1'] = mt(diak4.i1.pt, diak4.i1.phi, met_pt, met_phi).max()
     
         df['dphi_ak40_met'] = dphi(diak4.i0.phi.min(), met_phi)
         df['dphi_ak41_met'] = dphi(diak4.i1.phi.min(), met_phi)
@@ -606,31 +606,31 @@ class vbfhinvProcessor(processor.ProcessorABC):
             veto_weights = get_veto_weights(df, cfg, evaluator, electrons, muons, taus, do_variations=cfg.RUN.UNCERTAINTIES.VETO_WEIGHTS)
         
         # Get model predictions from the jet images (CNN)
-        if 'cnn_score' in cfg.NN_MODELS.RUN:
-            from bucoffea.helpers.tensorflow import load_model, prepare_data_for_cnn
+        #if 'cnn_score' in cfg.NN_MODELS.RUN:
+            #from bucoffea.helpers.tensorflow import load_model, prepare_data_for_cnn
 
-            model_dir = bucoffea_path(cfg.NN_MODELS.CONVNET.PATH)
-            model = load_model(model_dir)
+            #model_dir = bucoffea_path(cfg.NN_MODELS.CONVNET.PATH)
+            #model = load_model(model_dir)
         
-            jetimages_norm = prepare_data_for_cnn(jet_images)
-            df['cnn_score'] = model.predict(jetimages_norm)
+            #jetimages_norm = prepare_data_for_cnn(jet_images)
+            #df['cnn_score'] = model.predict(jetimages_norm)
 
         # DNN related functionality
-        if 'dnn_score' in cfg.NN_MODELS.RUN:
-            from bucoffea.helpers.pytorch import (
-                load_pytorch_state_dict,
-                scale_features_for_dnn,
-                FullyConnectedNN,
-            )
+        #if 'dnn_score' in cfg.NN_MODELS.RUN:
+            #from bucoffea.helpers.pytorch import (
+                #load_pytorch_state_dict,
+                #scale_features_for_dnn,
+                #FullyConnectedNN,
+            #)
 
             # DNN stuff:
             # Create an instance of the PyTorch model with the correct arch parameters
-            dnn_model = FullyConnectedNN(
-                **dict(cfg.NN_MODELS.DEEPNET.ARCH_PARAMETERS)
-            )
+            #dnn_model = FullyConnectedNN(
+                #**dict(cfg.NN_MODELS.DEEPNET.ARCH_PARAMETERS)
+            #)
         
             # Load the state dictionary (set of weights + biases) of a previously trained model
-            dnn_model.load_state_dict(load_pytorch_state_dict(cfg.NN_MODELS.DEEPNET.PATH))
+            #dnn_model.load_state_dict(load_pytorch_state_dict(cfg.NN_MODELS.DEEPNET.PATH))
 
         for region, cuts in regions.items():
             if not re.match(cfg.RUN.REGIONREGEX, region):
@@ -711,12 +711,12 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
             mask = selection.all(*cuts)
 
-            if 'dnn_score' in cfg.NN_MODELS.RUN:
+            #if 'dnn_score' in cfg.NN_MODELS.RUN:
                 # Set up DNN features for each region and obtain predictions
-                dnn_features = scale_features_for_dnn(df, cfg, region=region)
+                #dnn_features = scale_features_for_dnn(df, cfg, region=region)
 
                 # Get the predictions from this model
-                df['dnn_score'] = dnn_model.predict(dnn_features.to_numpy())
+                #df['dnn_score'] = dnn_model.predict(dnn_features.to_numpy())
 
             if cfg.RUN.SAVE.TREE:
                 if region in cfg.RUN.SAVE.TREE_REGIONS: 
@@ -774,17 +774,17 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         output['tree_float16'][region]["gen_boson_pt"]  +=  processor.column_accumulator(np.float16(gen_v_pt[mask]))
 
                     # Signal-like score from the neural networks
-                    if 'cnn_score' in cfg.NN_MODELS.RUN:
-                        output['tree_float16'][region]["cnn_score"]         +=  processor.column_accumulator(np.float16(df["cnn_score"][:, 1][mask]))                    
-                    if 'dnn_score' in cfg.NN_MODELS.RUN:
-                        output['tree_float16'][region]["dnn_score"]         +=  processor.column_accumulator(np.float16(df["dnn_score"][:, 1][mask]))
+                    #if 'cnn_score' in cfg.NN_MODELS.RUN:
+                        #output['tree_float16'][region]["cnn_score"]         +=  processor.column_accumulator(np.float16(df["cnn_score"][:, 1][mask]))                    
+                    #if 'dnn_score' in cfg.NN_MODELS.RUN:
+                        #output['tree_float16'][region]["dnn_score"]         +=  processor.column_accumulator(np.float16(df["dnn_score"][:, 1][mask]))
 
-                    if cfg.RUN.SAVE.JET_IMAGES:
-                        output['tree_ndarray'][region]["JetImage_E"]  += processor.column_accumulator(np.array(jet_images[mask]))
-                        output['tree_ndarray'][region]["JetImage_Et"] += processor.column_accumulator(np.array(jet_images_Et[mask]))
+                    #if cfg.RUN.SAVE.JET_IMAGES:
+                        #output['tree_ndarray'][region]["JetImage_E"]  += processor.column_accumulator(np.array(jet_images[mask]))
+                        #output['tree_ndarray'][region]["JetImage_Et"] += processor.column_accumulator(np.array(jet_images_Et[mask]))
 
-                        output['tree_float16'][region]["JetImage_nEtaBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nEtaBins'][mask]))
-                        output['tree_float16'][region]["JetImage_nPhiBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nPhiBins'][mask]))
+                        #output['tree_float16'][region]["JetImage_nEtaBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nEtaBins'][mask]))
+                        #output['tree_float16'][region]["JetImage_nPhiBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nPhiBins'][mask]))
 
                     output['tree_float16'][region]["htmiss"]            +=  processor.column_accumulator(np.float16(df['htmiss'][mask]))
                     output['tree_float16'][region]["ht"]                +=  processor.column_accumulator(np.float16(df['ht'][mask]))
@@ -1012,33 +1012,33 @@ class vbfhinvProcessor(processor.ProcessorABC):
             ezfill('mjj',                mjj=df["mjj"][mask],       weight=rweight[mask] )
 
             # Fill and save histograms for the features that are used by the DNN
-            if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
-                ezfill('dphi_ak40_met',      dphi=df["dphi_ak40_met"][mask],    weight=rweight[mask] )
-                ezfill('dphi_ak41_met',      dphi=df["dphi_ak41_met"][mask],    weight=rweight[mask] )
-                ezfill('ht',      ht=df["ht"][mask],    weight=rweight[mask] )
+            #if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
+                #ezfill('dphi_ak40_met',      dphi=df["dphi_ak40_met"][mask],    weight=rweight[mask] )
+                #ezfill('dphi_ak41_met',      dphi=df["dphi_ak41_met"][mask],    weight=rweight[mask] )
+                #ezfill('ht',      ht=df["ht"][mask],    weight=rweight[mask] )
 
                 # Quantities from the max-dijet pair
-                ezfill('mjj_maxmjj',         mjj=df["mjj_maxmjj"][mask],      weight=rweight[mask] )
-                ezfill('detajj_maxmjj',      deta=df["detajj_maxmjj"][mask],  weight=rweight[mask] )
-                ezfill('dphijj_maxmjj',      dphi=df["dphijj_maxmjj"][mask],  weight=rweight[mask] )
+                #ezfill('mjj_maxmjj',         mjj=df["mjj_maxmjj"][mask],      weight=rweight[mask] )
+                #ezfill('detajj_maxmjj',      deta=df["detajj_maxmjj"][mask],  weight=rweight[mask] )
+                #ezfill('dphijj_maxmjj',      dphi=df["dphijj_maxmjj"][mask],  weight=rweight[mask] )
 
-                ezfill('ak4_pt0_maxmjj',     jetpt=df["ak4_pt0_maxmjj"][mask],      weight=rweight[mask] )
-                ezfill('ak4_eta0_maxmjj',    jeteta=df["ak4_eta0_maxmjj"][mask],    weight=rweight[mask] )
-                ezfill('ak4_pt1_maxmjj',     jetpt=df["ak4_pt1_maxmjj"][mask],     weight=rweight[mask] )
-                ezfill('ak4_eta1_maxmjj',    jeteta=df["ak4_eta1_maxmjj"][mask],   weight=rweight[mask] )
+                #ezfill('ak4_pt0_maxmjj',     jetpt=df["ak4_pt0_maxmjj"][mask],      weight=rweight[mask] )
+                #ezfill('ak4_eta0_maxmjj',    jeteta=df["ak4_eta0_maxmjj"][mask],    weight=rweight[mask] )
+                #ezfill('ak4_pt1_maxmjj',     jetpt=df["ak4_pt1_maxmjj"][mask],     weight=rweight[mask] )
+                #ezfill('ak4_eta1_maxmjj',    jeteta=df["ak4_eta1_maxmjj"][mask],   weight=rweight[mask] )
 
             # Dijet quantities scaled to zero mean and uznit variance (i.e. inputs to the DNN)
-            if 'dnn_score' in cfg.NN_MODELS.RUN:
-                ezfill('mjj_transformed',       transformed=dnn_features["mjj"].to_numpy()[mask],         weight=rweight[mask] )
-                ezfill('detajj_transformed',    transformed=dnn_features["detajj"].to_numpy()[mask],      weight=rweight[mask] )
-                ezfill('dphijj_transformed',    transformed=dnn_features["dphijj"].to_numpy()[mask],      weight=rweight[mask] )
+            #if 'dnn_score' in cfg.NN_MODELS.RUN:
+                #ezfill('mjj_transformed',       transformed=dnn_features["mjj"].to_numpy()[mask],         weight=rweight[mask] )
+                #ezfill('detajj_transformed',    transformed=dnn_features["detajj"].to_numpy()[mask],      weight=rweight[mask] )
+                #ezfill('dphijj_transformed',    transformed=dnn_features["dphijj"].to_numpy()[mask],      weight=rweight[mask] )
 
             # Save signal-like score distribution
-            if 'cnn_score' in cfg.NN_MODELS.RUN:
-                ezfill('cnn_score',          score=df["cnn_score"][:, 1][mask],     weight=rweight[mask])
+            #if 'cnn_score' in cfg.NN_MODELS.RUN:
+                #ezfill('cnn_score',          score=df["cnn_score"][:, 1][mask],     weight=rweight[mask])
             
-            if 'dnn_score' in cfg.NN_MODELS.RUN:
-                ezfill('dnn_score',          score=df["dnn_score"][:, 1][mask],     weight=rweight[mask])
+            #if 'dnn_score' in cfg.NN_MODELS.RUN:
+                #ezfill('dnn_score',          score=df["dnn_score"][:, 1][mask],     weight=rweight[mask])
 
             rweight_nopref = region_weights.partial_weight(exclude=exclude+['prefire'])
             ezfill('mjj_nopref',                mjj=df["mjj"][mask],      weight=rweight_nopref[mask] )
@@ -1065,16 +1065,15 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         weight=weight[mask],
                     )
                     # Uncertainties on neural network score
-                    for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                        if score_type not in cfg.NN_MODELS.RUN:
+                    #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
+                        #if score_type not in cfg.NN_MODELS.RUN:
                             #continue
-                            break
 
-                        ezfill(f'{score_type}_unc',
-                            score=df[score_type][:, 1][mask],
-                            uncertainty=variation,
-                            weight=weight[mask],
-                        )
+                        #ezfill(f'{score_type}_unc',
+                            #score=df[score_type][:, 1][mask],
+                            #uncertainty=variation,
+                            #weight=weight[mask],
+                        #)
 
             if gen_v_pt is not None:
                 ezfill('gen_vpt', vpt=gen_v_pt[mask], weight=df['Generator_weight'][mask])
@@ -1164,16 +1163,15 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         uncertainty=puvar,
                         weight=(rw_nopu * w)[mask]
                     )
-                    for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                        if score_type not in cfg.NN_MODELS.RUN:
+                    #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
+                        #if score_type not in cfg.NN_MODELS.RUN:
                             #continue
-                            break
                         
-                        ezfill(f'{score_type}_unc',
-                            score=df[score_type][:, 1][mask],
-                            uncertainty=puvar,
-                            weight=(rw_nopu * w)[mask]
-                        )
+                        #ezfill(f'{score_type}_unc',
+                            #score=df[score_type][:, 1][mask],
+                            #uncertainty=puvar,
+                            #weight=(rw_nopu * w)[mask]
+                        #)
 
             # Variations in the prefire weight
             if cfg.RUN.UNCERTAINTIES.PREFIRE_SF and not df['is_data']:
@@ -1193,16 +1191,15 @@ class vbfhinvProcessor(processor.ProcessorABC):
                             uncertainty=variation,
                             weight=(rw_nopref * w)[mask]
                         )
-                        for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                            if score_type not in cfg.NN_MODELS.RUN:
+                        #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
+                            #if score_type not in cfg.NN_MODELS.RUN:
                                 #continue
-                                break
 
-                            ezfill(f'{score_type}_unc',
-                                score=df[score_type][:, 1][mask],
-                                uncertainty=variation,
-                                weight=(rw_nopref * w)[mask]
-                            )
+                            #ezfill(f'{score_type}_unc',
+                                #score=df[score_type][:, 1][mask],
+                                #uncertainty=variation,
+                                #weight=(rw_nopref * w)[mask]
+                            #)
                 
                 except KeyError:
                     pass
@@ -1252,16 +1249,15 @@ class vbfhinvProcessor(processor.ProcessorABC):
                             uncertainty=unc,
                             weight=w)
                         
-                        for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                            if score_type not in cfg.NN_MODELS.RUN:
+                        #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
+                            #if score_type not in cfg.NN_MODELS.RUN:
                                 #continue
-                                break
 
-                            ezfill(
-                                f'{score_type}_unc',
-                                score=df[score_type][:, 1][mask],
-                                uncertainty=unc,
-                                weight=w)
+                            #ezfill(
+                                #f'{score_type}_unc',
+                                #score=df[score_type][:, 1][mask],
+                                #uncertainty=unc,
+                                #weight=w)
 
                 # Distributions without the NLO EWK weights for the V+jets samples
                 # This is used to compute the NLO EWK uncertainty on V+jets transfer factors
@@ -1273,12 +1269,11 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
                     ezfill('mjj_noewk',    mjj=df['mjj'][mask],     weight=weight_noewk)
 
-                    for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                        if score_type not in cfg.NN_MODELS.RUN:
+                    #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
+                        #if score_type not in cfg.NN_MODELS.RUN:
                             #continue
-                            break
 
-                        ezfill(f'{score_type}_noewk',   score=df[score_type][:, 1][mask],   weight=weight_noewk)
+                        #ezfill(f'{score_type}_noewk',   score=df[score_type][:, 1][mask],   weight=weight_noewk)
                             
             # Muons
             if '_1m_' in region or '_2m_' in region or 'no_veto' in region:
