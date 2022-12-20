@@ -605,33 +605,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         if not df['is_data']:
             veto_weights = get_veto_weights(df, cfg, evaluator, electrons, muons, taus, do_variations=cfg.RUN.UNCERTAINTIES.VETO_WEIGHTS)
         
-        # Get model predictions from the jet images (CNN)
-        #if 'cnn_score' in cfg.NN_MODELS.RUN:
-            #from bucoffea.helpers.tensorflow import load_model, prepare_data_for_cnn
-
-            #model_dir = bucoffea_path(cfg.NN_MODELS.CONVNET.PATH)
-            #model = load_model(model_dir)
-        
-            #jetimages_norm = prepare_data_for_cnn(jet_images)
-            #df['cnn_score'] = model.predict(jetimages_norm)
-
-        # DNN related functionality
-        #if 'dnn_score' in cfg.NN_MODELS.RUN:
-            #from bucoffea.helpers.pytorch import (
-                #load_pytorch_state_dict,
-                #scale_features_for_dnn,
-                #FullyConnectedNN,
-            #)
-
-            # DNN stuff:
-            # Create an instance of the PyTorch model with the correct arch parameters
-            #dnn_model = FullyConnectedNN(
-                #**dict(cfg.NN_MODELS.DEEPNET.ARCH_PARAMETERS)
-            #)
-        
-            # Load the state dictionary (set of weights + biases) of a previously trained model
-            #dnn_model.load_state_dict(load_pytorch_state_dict(cfg.NN_MODELS.DEEPNET.PATH))
-
         for region, cuts in regions.items():
             if not re.match(cfg.RUN.REGIONREGEX, region):
                 continue
@@ -772,19 +745,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
                     if gen_v_pt is not None:
                         output['tree_float16'][region]["gen_boson_pt"]  +=  processor.column_accumulator(np.float16(gen_v_pt[mask]))
-
-                    # Signal-like score from the neural networks
-                    #if 'cnn_score' in cfg.NN_MODELS.RUN:
-                        #output['tree_float16'][region]["cnn_score"]         +=  processor.column_accumulator(np.float16(df["cnn_score"][:, 1][mask]))                    
-                    #if 'dnn_score' in cfg.NN_MODELS.RUN:
-                        #output['tree_float16'][region]["dnn_score"]         +=  processor.column_accumulator(np.float16(df["dnn_score"][:, 1][mask]))
-
-                    #if cfg.RUN.SAVE.JET_IMAGES:
-                        #output['tree_ndarray'][region]["JetImage_E"]  += processor.column_accumulator(np.array(jet_images[mask]))
-                        #output['tree_ndarray'][region]["JetImage_Et"] += processor.column_accumulator(np.array(jet_images_Et[mask]))
-
-                        #output['tree_float16'][region]["JetImage_nEtaBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nEtaBins'][mask]))
-                        #output['tree_float16'][region]["JetImage_nPhiBins"] += processor.column_accumulator(np.float16(df['JetImageSize_nPhiBins'][mask]))
 
                     output['tree_float16'][region]["htmiss"]            +=  processor.column_accumulator(np.float16(df['htmiss'][mask]))
                     output['tree_float16'][region]["ht"]                +=  processor.column_accumulator(np.float16(df['ht'][mask]))

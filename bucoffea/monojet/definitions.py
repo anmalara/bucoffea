@@ -498,10 +498,6 @@ def setup_candidates(df, cfg):
 
     met_pt = df[f'{met_branch}_pt{jes_suffix_met}']
     met_phi = df[f'{met_branch}_phi{jes_suffix_met}']
-
-    # Jet images
-    #jet_images = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_energies'])
-    #jet_images_Et = JaggedArray.fromcounts(df['nJetImage'], df['JetImage_transverseEnergies'])
     
     return met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons
 
