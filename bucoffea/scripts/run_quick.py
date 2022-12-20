@@ -18,7 +18,7 @@ def parse_commandline():
 def main():
     fileset = {
         "VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_2017" : [ 
-            "root://cmsxrootd.fnal.gov//store/user/a/aakpinar/nanopost/ULv8_05Feb21_withJetImages/VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_13TeV_powheg_pythia8/VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8_2017/220508_163431/0000/tree_1.root",
+            "/eos/user/a/aakpinar/nanopost/ULv8_05Feb21_withJetImages/VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_13TeV_powheg_pythia8/VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8_2017/220508_163431/0000/tree_1.root",
         ], 
     }
 
