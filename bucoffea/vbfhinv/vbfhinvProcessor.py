@@ -5,6 +5,11 @@ import numpy as np
 import pandas as pd
 from dynaconf import settings as cfg
 
+from bucoffea.helpers.particlenet import (
+    build_particlenet_inputs,
+    load_particlenet_model,
+    run_particlenet_model,
+    )
 
 from bucoffea.helpers import (
                               bucoffea_path,
@@ -192,6 +197,11 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # Check out setup_candidates for filtering details
         met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons = setup_candidates(df, cfg)
 
+        # Input features for ParticleNet
+        particlenet_inputs = build_particlenet_inputs(df)
+        session = load_particlenet_model(bucoffea_path("particlenet_models/model_ops12.onnx"))
+        scores = run_particlenet_model(session, particlenet_inputs)
+
         # Remove jets in accordance with the noise recipe
         if not cfg.RUN.ULEGACYV8 and df['year'] == 2017:
             ak4   = ak4[(ak4.ptraw>50) | (ak4.abseta<2.65) | (ak4.abseta>3.139)]
@@ -309,27 +319,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         df['dphijj'] = dphi(diak4.i0.phi.min(), diak4.i1.phi.max())
         df['detajj'] = np.abs(diak4.i0.eta - diak4.i1.eta).max()
 
-        # Features from the dijet pair with highest invariant mass (to be used by the DNN)
-        #if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
-            #diak4_all = ak4.distincts()
-            #highest_mass_diak4 = diak4_all[diak4_all.mass.argmax()]
-            #df["mjj_maxmjj"] = highest_mass_diak4.mass.max()
-            #df["dphijj_maxmjj"] = dphi(highest_mass_diak4.i0.phi.min(), highest_mass_diak4.i1.phi.max())
-            #df["detajj_maxmjj"] = (highest_mass_diak4.i0.eta.min() - highest_mass_diak4.i1.eta.max())
-        
-            #df["ak4_pt0"] = diak4.i0.pt.max()
-            #df["ak4_eta0"] = diak4.i0.eta.max()
-            #df["ak4_pt1"] = diak4.i1.pt.max()
-            #df["ak4_eta1"] = diak4.i1.eta.max()
-
-            #df["ak4_pt0_maxmjj"] = highest_mass_diak4.i0.pt.max()
-            #df["ak4_eta0_maxmjj"] = highest_mass_diak4.i0.eta.max()
-            #df["ak4_pt1_maxmjj"] = highest_mass_diak4.i1.pt.max()
-            #df["ak4_eta1_maxmjj"] = highest_mass_diak4.i1.eta.max()
-    
-            #df['ak4_mt0'] = mt(diak4.i0.pt, diak4.i0.phi, met_pt, met_phi).max()
-            #df['ak4_mt1'] = mt(diak4.i1.pt, diak4.i1.phi, met_pt, met_phi).max()
-    
         df['dphi_ak40_met'] = dphi(diak4.i0.phi.min(), met_phi)
         df['dphi_ak41_met'] = dphi(diak4.i1.phi.min(), met_phi)
 
@@ -971,34 +960,9 @@ class vbfhinvProcessor(processor.ProcessorABC):
             ezfill('detajj',             deta=df["detajj"][mask],   weight=rweight[mask] )
             ezfill('mjj',                mjj=df["mjj"][mask],       weight=rweight[mask] )
 
-            # Fill and save histograms for the features that are used by the DNN
-            #if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
-                #ezfill('dphi_ak40_met',      dphi=df["dphi_ak40_met"][mask],    weight=rweight[mask] )
-                #ezfill('dphi_ak41_met',      dphi=df["dphi_ak41_met"][mask],    weight=rweight[mask] )
-                #ezfill('ht',      ht=df["ht"][mask],    weight=rweight[mask] )
-
-                # Quantities from the max-dijet pair
-                #ezfill('mjj_maxmjj',         mjj=df["mjj_maxmjj"][mask],      weight=rweight[mask] )
-                #ezfill('detajj_maxmjj',      deta=df["detajj_maxmjj"][mask],  weight=rweight[mask] )
-                #ezfill('dphijj_maxmjj',      dphi=df["dphijj_maxmjj"][mask],  weight=rweight[mask] )
-
-                #ezfill('ak4_pt0_maxmjj',     jetpt=df["ak4_pt0_maxmjj"][mask],      weight=rweight[mask] )
-                #ezfill('ak4_eta0_maxmjj',    jeteta=df["ak4_eta0_maxmjj"][mask],    weight=rweight[mask] )
-                #ezfill('ak4_pt1_maxmjj',     jetpt=df["ak4_pt1_maxmjj"][mask],     weight=rweight[mask] )
-                #ezfill('ak4_eta1_maxmjj',    jeteta=df["ak4_eta1_maxmjj"][mask],   weight=rweight[mask] )
-
-            # Dijet quantities scaled to zero mean and uznit variance (i.e. inputs to the DNN)
-            #if 'dnn_score' in cfg.NN_MODELS.RUN:
-                #ezfill('mjj_transformed',       transformed=dnn_features["mjj"].to_numpy()[mask],         weight=rweight[mask] )
-                #ezfill('detajj_transformed',    transformed=dnn_features["detajj"].to_numpy()[mask],      weight=rweight[mask] )
-                #ezfill('dphijj_transformed',    transformed=dnn_features["dphijj"].to_numpy()[mask],      weight=rweight[mask] )
-
-            # Save signal-like score distribution
-            #if 'cnn_score' in cfg.NN_MODELS.RUN:
-                #ezfill('cnn_score',          score=df["cnn_score"][:, 1][mask],     weight=rweight[mask])
-            
-            #if 'dnn_score' in cfg.NN_MODELS.RUN:
-                #ezfill('dnn_score',          score=df["dnn_score"][:, 1][mask],     weight=rweight[mask])
+            # ParticleNet scores
+            ezfill('particlenet_score',   score=scores[:,0][mask],   score_type="VBF-like",   weight=rweight[mask])
+            ezfill('particlenet_score',   score=scores[:,1][mask],   score_type="ggH-like",   weight=rweight[mask])
 
             rweight_nopref = region_weights.partial_weight(exclude=exclude+['prefire'])
             ezfill('mjj_nopref',                mjj=df["mjj"][mask],      weight=rweight_nopref[mask] )

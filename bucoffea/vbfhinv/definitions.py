@@ -23,6 +23,9 @@ def vbfhinv_accumulator(cfg):
     variation_ax = Cat("variation", "Uncertainty weight variation")
     region_ax = Cat("region", "Selection region")
     type_ax = Cat("type", "Type")
+    
+    # Score type for ParticleNet (i.e. ggH vs VBF)
+    score_type_ax = Cat("score_type", "Score type")
 
     vpt_ax = Bin("vpt",r"$p_{T}^{V}$ (GeV)", 100, 0, 2000)
 
@@ -110,6 +113,9 @@ def vbfhinv_accumulator(cfg):
     items["met_phi"] = Hist("Counts", dataset_ax, region_ax, phi_ax)
     items["recoil"] = Hist("Counts", dataset_ax, region_ax, recoil_ax)
     items["recoil_phi"] = Hist("Counts", dataset_ax, region_ax, phi_ax)
+
+    # ParticleNet score distribution
+    items["particlenet_score"] = Hist("Counts", dataset_ax, region_ax, score_ax, score_type_ax)
 
     items["met_pt_ak40_hf"] = Hist("Counts", dataset_ax, region_ax, met_ax)
     items["met_pt_ak41_hf"] = Hist("Counts", dataset_ax, region_ax, met_ax)
@@ -349,7 +355,7 @@ def vbfhinv_regions(cfg):
         common_cuts.append('mjj_tight')
 
     regions = {}
-    # regions['inclusive'] = ['inclusive']
+    regions['inclusive'] = ['inclusive']
 
     # Signal regions (v = mono-V, j = mono-jet)
     regions['sr_vbf'] = ['trig_met','metphihemextveto','hornveto'] + common_cuts + ['dpfcalo_sr', 'eemitigation']
