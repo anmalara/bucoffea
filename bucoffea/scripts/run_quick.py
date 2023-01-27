@@ -17,8 +17,11 @@ def parse_commandline():
 
 def main():
     fileset = {
+        "GluGlu_HToInvisible_M125_HiggspTgt190_pow_pythia8_2017" : [ 
+            "/afs/cern.ch/work/a/aakpinar/public/CMSSW_10_2_15/src/PhysicsTools/NanoAODTools/crab/tree_ggHinv.root",
+        ], 
         "VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_2017" : [ 
-            "/afs/cern.ch/work/a/aakpinar/public/CMSSW_10_2_15/src/PhysicsTools/NanoAODTools/crab/tree.root",
+            "/afs/cern.ch/work/a/aakpinar/public/CMSSW_10_2_15/src/PhysicsTools/NanoAODTools/crab/tree_VBFHinv.root",
         ], 
     }
 

@@ -17,22 +17,15 @@ def plot_score_dist(acc, distribution, region, dataset):
     h = acc[distribution]
     
     # Rebinning
-    new_ax = hist.Bin("score", "ParticleNet Score", 25, 0, 1)
+    new_ax = hist.Bin("score", "ParticleNet VBF-like Score", 25, 0, 1)
     h = h.rebin('score', new_ax)
 
-    # Integrate region and dataset
-    h = h.integrate('region', region).integrate('dataset', re.compile(dataset))
+    # Integrate region and score type
+    h = h.integrate('region', region).integrate('score_type', 'VBF-like')
 
     # Plot!
     fig, ax = plt.subplots()
-    hist.plot1d(h, ax=ax, overlay='score_type')
-
-    ax.text(0,1,'VBF H(inv) 2017',
-        fontsize=14,
-        ha='left',
-        va='bottom',
-        transform=ax.transAxes,
-    )
+    hist.plot1d(h, ax=ax, overlay='dataset')
 
     fig.savefig(f"{distribution}.pdf")
 
