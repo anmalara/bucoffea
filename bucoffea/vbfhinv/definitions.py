@@ -373,6 +373,7 @@ def vbfhinv_regions(cfg):
     # SR without PU weights
     # regions['sr_vbf_no_pu'] = copy.deepcopy(regions['sr_vbf'])
 
+
     # SR without HEM veto
     if cfg.RUN.HEMCHECK:
         regions['sr_vbf_no_hem_veto'] = copy.deepcopy(regions['sr_vbf'])
@@ -484,6 +485,10 @@ def vbfhinv_regions(cfg):
         tmp[new_region].append("mindphijm")
 
     regions.update(tmp)
+
+    # Region with high detajj cut
+    regions['sr_vbf_detajj_gt_3p0'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
+    regions['sr_vbf_detajj_gt_3p0'].append('detajj_gt_3p0')
 
     if cfg and cfg.RUN.TRIGGER_STUDY:
         # Trigger studies

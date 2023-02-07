@@ -390,47 +390,13 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('dphijj', df['dphijj'] < cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DPHI)
         selection.add('detajj', df['detajj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DETA)
 
-        # selection.add('mjj_tight', df['mjj'] > 1200.)
+        selection.add('detajj_gt_3p0', df['detajj'] > 3.0)
 
-        # Cleaning cuts for signal region
-
-        # NEF cut: Only for endcap jets, require NEF < 0.7
-        ak40_in_endcap = (diak4.i0.abseta > 2.5) & (diak4.i0.abseta < 3.0)
-        ak41_in_endcap = (diak4.i1.abseta > 2.5) & (diak4.i1.abseta < 3.0)
-
-        max_neEmEF_ak40 = (~ak40_in_endcap) | (diak4.i0.nef < 0.7) 
-        max_neEmEF_ak41 = (~ak41_in_endcap) | (diak4.i1.nef < 0.7) 
-
-        max_neEmEF = (max_neEmEF_ak40 & max_neEmEF_ak41).any()
-        # selection.add('max_neEmEF', max_neEmEF)
-        
+        # Several cleaning quantities for signal region
+        # Not used actively right now!
         vec_b = calculate_vecB(ak4, met_pt, met_phi)
         vec_dphi = calculate_vecDPhi(ak4, met_pt, met_phi, df['TkMET_phi'])
-
         dphitkpf = dphi(met_phi, df['TkMET_phi'])
-
-        no_jet_in_trk = (diak4.i0.abseta>2.5).any() & (diak4.i1.abseta>2.5).any()
-        no_jet_in_hf = (diak4.i0.abseta<3.0).any() & (diak4.i1.abseta<3.0).any()
-
-        at_least_one_jet_in_hf = (diak4.i0.abseta>3.0).any() | (diak4.i1.abseta>3.0).any()
-        at_least_one_jet_in_trk = (diak4.i0.abseta<2.5).any() | (diak4.i1.abseta<2.5).any()
-
-        # Categorized cleaning cuts
-        eemitigation = (
-                        (no_jet_in_hf | at_least_one_jet_in_trk) & (vec_dphi < 1.0)
-                    ) | (
-                        (no_jet_in_trk & at_least_one_jet_in_hf) & (vec_b < 0.2)
-                    )
-
-        # selection.add('eemitigation', eemitigation)
-
-        # HF-HF veto in SR
-        both_jets_in_hf = (diak4.i0.abseta > 3.0) & (diak4.i1.abseta > 3.0)
-        # selection.add('veto_hfhf', ~both_jets_in_hf.any())
-
-        # Leading jet |eta| < 2.9
-        # leadak4_not_in_hf = (diak4.i0.abseta < 2.9).any()
-        # selection.add('leadak4_not_in_hf', leadak4_not_in_hf)
 
         # Reject events where the leading jet has momentum > 6.5 TeV
         leadak4_clean = diak4.i0.pt * np.cosh(diak4.i0.eta) < 6500
