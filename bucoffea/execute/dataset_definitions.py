@@ -177,16 +177,13 @@ def files_from_eos(regex):
     :return: Mapping of dataset : [files]
     :rtype: dict
     """
-
     host = socket.gethostname()
     if 'lxplus' in host:
-        topdir = '/eos/user/a/aakpinar/nanopost'
-        tag = 'ULv8_05Feb21_withJetImages'
+        topdir = '/eos/cms/store/group/phys_higgs/vbfhiggs'
+        tag = 'PFNANO_05Feb23_PostNanoTools'
         fileset = find_files(pjoin(topdir, tag), regex)
 
     elif 'lpc' in host:
-        #topdir = '/eos/uscms/store/user/lpcexohiggs/VBF_H_ML/'
-        #tag = '14Jul22_jetImages_processed'
         topdir = '/eos/uscms/store/user/aakpinar/nanopost/'
         tag = 'ULv8_05Feb21'
         fileset = find_files_eos(pjoin(topdir, tag), regex)
