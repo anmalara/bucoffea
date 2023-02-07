@@ -17,11 +17,8 @@ def parse_commandline():
 
 def main():
     fileset = {
-        "GluGlu_HToInvisible_M125_HiggspTgt190_pow_pythia8_2017" : [ 
-            "/afs/cern.ch/work/a/aakpinar/public/CMSSW_10_2_15/src/PhysicsTools/NanoAODTools/crab/tree_ggHinv.root",
-        ], 
-        "VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_2017" : [ 
-            "/afs/cern.ch/work/a/aakpinar/public/CMSSW_10_2_15/src/PhysicsTools/NanoAODTools/crab/tree_VBFHinv.root",
+        "VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_05Feb23_PostNanoTools/VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_13TeV_powheg_pythia8/VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8/230207_011553/0000/tree_1.root"
         ], 
     }
 
@@ -64,8 +61,8 @@ def main():
                                     treename='Runs' if args.processor=='sumw' else 'Events',
                                     processor_instance=processorInstance,
                                     executor=processor.futures_executor,
-                                    executor_args={'workers': 4, 'flatten': True},
-                                    chunksize=500000,
+                                    executor_args={'workers': 1, 'flatten': True},
+                                    chunksize=50000,
                                     )
         save(output, f"{processor_class}_{dataset}.coffea")
         # Debugging / testing output

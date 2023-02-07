@@ -34,28 +34,29 @@ def load_pf_cands(df):
     return pfcands
 
 
-def build_particlenet_inputs(df, num_cands=100, sortby='pt'):
+def build_particlenet_inputs(pfcands, mask, num_cands=100, sortby='pt'):
     """
     Function that returns the dictionary with the PF candidate features,
     as to be read by the ParticleNet NN.
     """
-    pfcands = load_pf_cands(df)
+    masked_pfcands = pfcands[mask]
 
-    # Sort the candidates (default is by pt) and 
-    # take the first num_cands (default 100) candidates
-    indices = getattr(pfcands, sortby).argsort()
-    pfcands = pfcands[indices]
+    # PF candidates are sorted by pt in custom NanoAOD
+    # If we're going to sort by something else, do the sorting here
+    if sortby != 'pt':
+        indices = getattr(masked_pfcands, sortby).argsort()
+        masked_pfcands = masked_pfcands[indices]
 
     def get_feature_array(feature):
         """
         Helper function to get a 2D array for a single feature.
         """
         if feature == 'energy_log':
-            arr = np.log(pfcands.energy)
+            arr = np.log(masked_pfcands.energy)
         elif feature == 'pt_log':
-            arr = np.log(pfcands.pt)
+            arr = np.log(masked_pfcands.pt)
         else:
-            arr = getattr(pfcands, feature)
+            arr = getattr(masked_pfcands, feature)
         
         # If the length of the array is less than num_cands,
         # need to pad the rest of the array with zeros

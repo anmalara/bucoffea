@@ -50,7 +50,7 @@ default:
       pt: 20
       eta: 2.3
     branch:
-      id: Tau_idDecayModeNewDMs
+      id: Tau_idDecayModeOldDMs
       iso: Tau_idDeepTau2017v2p1VSjet
     gencheck: True
   photon:

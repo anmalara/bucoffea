@@ -9,6 +9,7 @@ from bucoffea.helpers.particlenet import (
     build_particlenet_inputs,
     load_particlenet_model,
     run_particlenet_model,
+    load_pf_cands,
     )
 
 from bucoffea.helpers import (
@@ -197,11 +198,10 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # Check out setup_candidates for filtering details
         met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons = setup_candidates(df, cfg)
 
-        # Input features for ParticleNet
-        particlenet_inputs = build_particlenet_inputs(df)
+        # Set up ParticleNet
+        pfcands = load_pf_cands(df)
         session = load_particlenet_model(bucoffea_path("particlenet_models/model_ops12.onnx"))
-        scores = run_particlenet_model(session, particlenet_inputs)
-
+        
         # Remove jets in accordance with the noise recipe
         if not cfg.RUN.ULEGACYV8 and df['year'] == 2017:
             ak4   = ak4[(ak4.ptraw>50) | (ak4.abseta<2.65) | (ak4.abseta>3.139)]
@@ -960,9 +960,13 @@ class vbfhinvProcessor(processor.ProcessorABC):
             ezfill('detajj',             deta=df["detajj"][mask],   weight=rweight[mask] )
             ezfill('mjj',                mjj=df["mjj"][mask],       weight=rweight[mask] )
 
-            # ParticleNet scores
-            ezfill('particlenet_score',   score=scores[:,0][mask],   score_type="VBF-like",   weight=rweight[mask])
-            ezfill('particlenet_score',   score=scores[:,1][mask],   score_type="ggH-like",   weight=rweight[mask])
+            # Prepare ParticleNet inputs and run the model
+            # First check if there are passing events after the selection
+            particlenet_inputs = build_particlenet_inputs(pfcands, mask)
+            if particlenet_inputs["pf_features"].shape[0] > 0:
+                scores = run_particlenet_model(session, particlenet_inputs)
+                ezfill('particlenet_score',   score=scores[:,0],   score_type="VBF-like",   weight=rweight[mask])
+                ezfill('particlenet_score',   score=scores[:,1],   score_type="ggH-like",   weight=rweight[mask])
 
             rweight_nopref = region_weights.partial_weight(exclude=exclude+['prefire'])
             ezfill('mjj_nopref',                mjj=df["mjj"][mask],      weight=rweight_nopref[mask] )
