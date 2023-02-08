@@ -639,6 +639,12 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
             mask = selection.all(*cuts)
 
+            # Prepare ParticleNet inputs and run the model
+            # First check if there are passing events after the selection
+            particlenet_inputs = build_particlenet_inputs(pfcands, mask)
+            if particlenet_inputs["pf_features"].shape[0] > 0:
+                scores = run_particlenet_model(session, particlenet_inputs)
+
             #if 'dnn_score' in cfg.NN_MODELS.RUN:
                 # Set up DNN features for each region and obtain predictions
                 #dnn_features = scale_features_for_dnn(df, cfg, region=region)
@@ -664,7 +670,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         output['tree_float16'][region]["leadak4_setaeta"]   +=  processor.column_accumulator(np.float16(diak4.i0.setaeta[mask]))
                         output['tree_float16'][region]["leadak4_sphiphi"]   +=  processor.column_accumulator(np.float16(diak4.i0.sphiphi[mask]))
                         output['tree_float16'][region]["leadak4_cssize"]    +=  processor.column_accumulator(np.float16(diak4.i0.hfcentralstripsize[mask]))
-                        output['tree_float16'][region]["leadak4_btagDeepFlavQG"]    +=  processor.column_accumulator(np.float16(diak4.i0.btagdf[mask]))
                 
                     output['tree_float16'][region]["trailak4_pt"]        +=  processor.column_accumulator(np.float16(diak4.i1.pt[mask]))
                     output['tree_float16'][region]["trailak4_eta"]       +=  processor.column_accumulator(np.float16(diak4.i1.eta[mask]))
@@ -678,35 +683,20 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         output['tree_float16'][region]["trailak4_setaeta"]   +=  processor.column_accumulator(np.float16(diak4.i1.setaeta[mask]))
                         output['tree_float16'][region]["trailak4_sphiphi"]   +=  processor.column_accumulator(np.float16(diak4.i1.sphiphi[mask]))
                         output['tree_float16'][region]["trailak4_cssize"]    +=  processor.column_accumulator(np.float16(diak4.i1.hfcentralstripsize[mask]))
-                        output['tree_float16'][region]["trailak4_btagDeepFlavQG"]    +=  processor.column_accumulator(np.float16(diak4.i1.btagdf[mask]))
 
                     output['tree_float16'][region]["mjj"]               +=  processor.column_accumulator(np.float16(df["mjj"][mask]))
                     output['tree_float16'][region]["detajj"]            +=  processor.column_accumulator(np.float16(df["detajj"][mask]))
                     output['tree_float16'][region]["dphijj"]            +=  processor.column_accumulator(np.float16(df["dphijj"][mask]))
-                    output['tree_float16'][region]["uncorr_recoil_pt"]  +=  processor.column_accumulator(np.float16(df["recoil_pt_uncorr"][mask]))
-                    output['tree_float16'][region]["uncorr_recoil_phi"] +=  processor.column_accumulator(np.float16(df["recoil_phi_uncorr"][mask]))
                     output['tree_float16'][region]["recoil_pt"]         +=  processor.column_accumulator(np.float16(df["recoil_pt"][mask]))
                     output['tree_float16'][region]["recoil_phi"]        +=  processor.column_accumulator(np.float16(df["recoil_phi"][mask]))
-                    output['tree_float16'][region]["uncorr_met_pt"]     +=  processor.column_accumulator(np.float16(met_pt_uncorr[mask]))
-                    output['tree_float16'][region]["uncorr_met_phi"]    +=  processor.column_accumulator(np.float16(met_phi_uncorr[mask]))
                     output['tree_float16'][region]["met_pt"]            +=  processor.column_accumulator(np.float16(met_pt[mask]))
                     output['tree_float16'][region]["met_phi"]           +=  processor.column_accumulator(np.float16(met_phi[mask]))
-                    output['tree_float16'][region]["CaloMet_pt"]        +=  processor.column_accumulator(np.float16(df['CaloMET_pt'][mask]))
-                    output['tree_float16'][region]["CaloMet_phi"]       +=  processor.column_accumulator(np.float16(df['CaloMET_phi'][mask]))
                     output['tree_float16'][region]["minDPhiJetMet"]     +=  processor.column_accumulator(np.float16(df["minDPhiJetMet"][mask]))
                     output['tree_float16'][region]["minDPhiJetRecoil"]  +=  processor.column_accumulator(np.float16(df["minDPhiJetRecoil"][mask]))
-                    output['tree_float16'][region]["dphi_ak40_met"]     +=  processor.column_accumulator(np.float16(df["dphi_ak40_met"][mask]))
-                    output['tree_float16'][region]["dphi_ak41_met"]     +=  processor.column_accumulator(np.float16(df["dphi_ak41_met"][mask]))
 
                     if gen_v_pt is not None:
                         output['tree_float16'][region]["gen_boson_pt"]  +=  processor.column_accumulator(np.float16(gen_v_pt[mask]))
 
-                    output['tree_float16'][region]["htmiss"]            +=  processor.column_accumulator(np.float16(df['htmiss'][mask]))
-                    output['tree_float16'][region]["ht"]                +=  processor.column_accumulator(np.float16(df['ht'][mask]))
-                    output['tree_float16'][region]["vecb"]              +=  processor.column_accumulator(np.float16(vec_b[mask]))
-                    output['tree_float16'][region]["vecdphi"]           +=  processor.column_accumulator(np.float16(vec_dphi[mask]))
-                    output['tree_float16'][region]["dphitkpf"]          +=  processor.column_accumulator(np.float16(dphitkpf[mask]))
-                    
                     output['tree_float16'][region]["nLooseMuon"]        +=  processor.column_accumulator(np.float16(muons.counts[mask]))
                     output['tree_float16'][region]["nTightMuon"]        +=  processor.column_accumulator(np.float16(muons[df['is_tight_muon']].counts[mask]))
                     output['tree_float16'][region]["nLooseElectron"]    +=  processor.column_accumulator(np.float16(electrons.counts[mask]))
@@ -714,6 +704,19 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     output['tree_float16'][region]["nLooseTau"]         +=  processor.column_accumulator(np.float16(taus.counts[mask]))
                     output['tree_float16'][region]["nMediumBJet"]       +=  processor.column_accumulator(np.float16(bjets.counts[mask]))
                     
+                    # ParticleNet VBF score
+                    output['tree_float16'][region]["particleNet_vbfScore"]   +=  processor.column_accumulator(np.float16(scores[:, 0]))
+                    
+                    # Dataset labels
+                    if re.match("VBF_HToInvisible.*M125.*", df["dataset"]):
+                        labels = np.ones(df.size)
+                    elif re.match("GluGlu.*HToInvisible.*M125.*", df["dataset"]):
+                        labels = 0 * np.ones(df.size)
+                    else:
+                        labels = -1 * np.ones(df.size)
+                    
+                    output['tree_float16'][region]["particleNet_label"]      +=  processor.column_accumulator(np.float16(labels[mask]))
+
                     # Check for loose leptons in SR
                     event_has_at_least_one_muon = muons.counts > 0
                     event_has_at_least_two_muons = muons.counts > 1
@@ -926,11 +929,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
             ezfill('detajj',             deta=df["detajj"][mask],   weight=rweight[mask] )
             ezfill('mjj',                mjj=df["mjj"][mask],       weight=rweight[mask] )
 
-            # Prepare ParticleNet inputs and run the model
-            # First check if there are passing events after the selection
-            particlenet_inputs = build_particlenet_inputs(pfcands, mask)
             if particlenet_inputs["pf_features"].shape[0] > 0:
-                scores = run_particlenet_model(session, particlenet_inputs)
                 ezfill('particlenet_score',   score=scores[:,0],   score_type="VBF-like",   weight=rweight[mask])
                 ezfill('particlenet_score',   score=scores[:,1],   score_type="ggH-like",   weight=rweight[mask])
 
