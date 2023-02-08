@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from coffea.util import load
 from coffea import hist
 from klepto.archives import dir_archive
+from tqdm import tqdm
 
 from bucoffea.plot.util import merge_extensions, merge_datasets, scale_xs_lumi
 
@@ -54,7 +55,77 @@ def plot_score_dist(acc, distribution, region, outdir):
 
     ax.legend(handles=handles, title="Dataset (2018)")
 
-    outpath = pjoin(outdir, f"{distribution}.pdf")
+    ax.text(0,1,"VBF H(inv) SR",
+        fontsize=14,
+        ha="left",
+        va="bottom",
+        transform=ax.transAxes
+    )
+
+    ax.text(1,1,"Run2 2018",
+        fontsize=14,
+        ha="right",
+        va="bottom",
+        transform=ax.transAxes
+    )
+
+    outpath = pjoin(outdir, f"{region}_{distribution}.pdf")
+    fig.savefig(outpath)
+    plt.close(fig)
+
+
+def compare_ggh_score_dist_with_high_detajj(acc, outdir, distribution, dataset="GluGlu_HToInvisible.*M125.*2018"):
+    """
+    Compares ggH(inv) score distributions between the VBF SR and
+    VBF SR + detajj>3 cut.
+    """
+    acc.load(distribution)
+    h = acc[distribution]
+
+    # Merge datasets, scale by xs * lumi / sumw
+    h = merge_extensions(h, acc, reweight_pu=False)
+    scale_xs_lumi(h)
+    h = merge_datasets(h)
+
+    # Rebinning
+    new_ax = hist.Bin("score", "ParticleNet VBF-like Score", 25, 0, 1)
+    h = h.rebin('score', new_ax)
+
+    h = h.integrate("dataset", re.compile(dataset)).integrate("score_type", "VBF-like")
+
+    regions_labels = {
+        "sr_vbf_no_veto_all" : "VBF H(inv) SR",
+        "sr_vbf_detajj_gt_3p0" : r"SR + $\Delta\eta_{jj} > 3$",
+    }
+
+    fig, ax = plt.subplots()
+    legend_labels = []
+
+    for region, label in regions_labels.items():
+        hist.plot1d(
+            h.integrate("region", region),
+            ax=ax,
+            clear=False
+        )
+        legend_labels.append(label)
+    
+    ax.legend(title="Region", labels=legend_labels)
+
+    ax.text(0,1,"ggH(inv)",
+        fontsize=14,
+        ha="left",
+        va="bottom",
+        transform=ax.transAxes
+    )
+
+    ax.text(1,1,"Run2 2018",
+        fontsize=14,
+        ha="right",
+        va="bottom",
+        transform=ax.transAxes
+    )
+
+    outpath = pjoin(outdir, "ggH_sr_detajj_cut.pdf")
     fig.savefig(outpath)
     plt.close(fig)
 
@@ -71,10 +142,18 @@ def main():
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    plot_score_dist(acc,
-        distribution="particlenet_score",
-        region="sr_vbf_no_veto_all",
+    regions = ["sr_vbf_no_veto_all", "sr_vbf_detajj_gt_3p0"]
+
+    for region in tqdm(regions, desc="Plotting score distributions"):
+        plot_score_dist(acc,
+            distribution="particlenet_score",
+            region=region,
+            outdir=outdir,
+        )
+
+    compare_ggh_score_dist_with_high_detajj(acc,
         outdir=outdir,
+        distribution="particlenet_score",
     )
 
 if __name__ == '__main__':
