@@ -289,12 +289,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         selection.add('recoil', df['recoil_pt']>cfg.SELECTION.SIGNAL.RECOIL)
         selection.add('met_sr', met_pt>cfg.SELECTION.SIGNAL.RECOIL)
-        selection.add('small_met', met_pt<50)
 
         selection.add('calo_metptnolep', df['CaloRecoil_pt'] > 200)
-
-        # Relaxed recoil cut for Zmm region
-        selection.add('recoil_zmm', df['recoil_pt']>100)
 
         # AK4 dijet
         diak4 = ak4[:,:2].distincts()
@@ -322,18 +318,12 @@ class vbfhinvProcessor(processor.ProcessorABC):
         df['dphi_ak40_met'] = dphi(diak4.i0.phi.min(), met_phi)
         df['dphi_ak41_met'] = dphi(diak4.i1.phi.min(), met_phi)
 
-        leading_jet_in_horn = ((diak4.i0.abseta<3.2) & (diak4.i0.abseta>2.8)).any()
-        trailing_jet_in_horn = ((diak4.i1.abseta<3.2) & (diak4.i1.abseta>2.8)).any()
-
-        # Additional jets in the central region (|eta| < 2.5)
-        extra_ak4 = ak4[:,2:]
-        extra_ak4_central = extra_ak4[extra_ak4.abseta < 2.5]
-
-        # selection.add('hornveto', (df['dPFTkSR'] < 0.8) | ~(leading_jet_in_horn | trailing_jet_in_horn))
-        
         df['htmiss'] = ak4[ak4.pt>30].p4.sum().pt
         df['ht'] = ak4[ak4.pt>30].pt.sum()
 
+        # HEM mask for 2018 data
+        # For MC, we're reweighting events with the fraction of good lumi, 
+        # so the cut is defined as pass_all here
         if df['year'] == 2018:
             if df['is_data']:
                 metphihem_mask = ~((met_phi > -1.8) & (met_phi < -0.6) & (df['run'] > 319077))
@@ -390,6 +380,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('dphijj', df['dphijj'] < cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DPHI)
         selection.add('detajj', df['detajj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DETA)
 
+        # Tighter detajj cut for ML studies
         selection.add('detajj_gt_3p0', df['detajj'] > 3.0)
 
         # Several cleaning quantities for signal region
@@ -645,13 +636,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
             if particlenet_inputs["pf_features"].shape[0] > 0:
                 scores = run_particlenet_model(session, particlenet_inputs)
 
-            #if 'dnn_score' in cfg.NN_MODELS.RUN:
-                # Set up DNN features for each region and obtain predictions
-                #dnn_features = scale_features_for_dnn(df, cfg, region=region)
-
-                # Get the predictions from this model
-                #df['dnn_score'] = dnn_model.predict(dnn_features.to_numpy())
-
             if cfg.RUN.SAVE.TREE:
                 if region in cfg.RUN.SAVE.TREE_REGIONS: 
                     output['tree_int64'][region]["event"]             +=  processor.column_accumulator(df["event"][mask])
@@ -789,8 +773,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
             fill_mult('tight_muo_mult',muons[df['is_tight_muon']])
             fill_mult('tau_mult',taus)
             fill_mult('photon_mult',photons)
-            # Number of additional jets in the central region, |eta| < 2.5
-            fill_mult('extra_ak4_mult', extra_ak4_central[extra_ak4_central.pt>30])
 
             def ezfill(name, **kwargs):
                 """Helper function to make filling easier."""
@@ -957,16 +939,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         uncertainty=variation,
                         weight=weight[mask],
                     )
-                    # Uncertainties on neural network score
-                    #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                        #if score_type not in cfg.NN_MODELS.RUN:
-                            #continue
-
-                        #ezfill(f'{score_type}_unc',
-                            #score=df[score_type][:, 1][mask],
-                            #uncertainty=variation,
-                            #weight=weight[mask],
-                        #)
 
             if gen_v_pt is not None:
                 ezfill('gen_vpt', vpt=gen_v_pt[mask], weight=df['Generator_weight'][mask])
@@ -1056,15 +1028,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
                         uncertainty=puvar,
                         weight=(rw_nopu * w)[mask]
                     )
-                    #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                        #if score_type not in cfg.NN_MODELS.RUN:
-                            #continue
-                        
-                        #ezfill(f'{score_type}_unc',
-                            #score=df[score_type][:, 1][mask],
-                            #uncertainty=puvar,
-                            #weight=(rw_nopu * w)[mask]
-                        #)
 
             # Variations in the prefire weight
             if cfg.RUN.UNCERTAINTIES.PREFIRE_SF and not df['is_data']:
@@ -1084,15 +1047,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
                             uncertainty=variation,
                             weight=(rw_nopref * w)[mask]
                         )
-                        #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                            #if score_type not in cfg.NN_MODELS.RUN:
-                                #continue
-
-                            #ezfill(f'{score_type}_unc',
-                                #score=df[score_type][:, 1][mask],
-                                #uncertainty=variation,
-                                #weight=(rw_nopref * w)[mask]
-                            #)
                 
                 except KeyError:
                     pass
@@ -1142,16 +1096,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
                             uncertainty=unc,
                             weight=w)
                         
-                        #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                            #if score_type not in cfg.NN_MODELS.RUN:
-                                #continue
-
-                            #ezfill(
-                                #f'{score_type}_unc',
-                                #score=df[score_type][:, 1][mask],
-                                #uncertainty=unc,
-                                #weight=w)
-
                 # Distributions without the NLO EWK weights for the V+jets samples
                 # This is used to compute the NLO EWK uncertainty on V+jets transfer factors
                 if df['is_nlo_z'] or df['is_nlo_w'] or df['is_lo_g']:
@@ -1162,12 +1106,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
                     ezfill('mjj_noewk',    mjj=df['mjj'][mask],     weight=weight_noewk)
 
-                    #for score_type in cfg.NN_MODELS.UNCERTAINTIES:
-                        #if score_type not in cfg.NN_MODELS.RUN:
-                            #continue
-
-                        #ezfill(f'{score_type}_noewk',   score=df[score_type][:, 1][mask],   weight=weight_noewk)
-                            
             # Muons
             if '_1m_' in region or '_2m_' in region or 'no_veto' in region:
                 w_allmu = weight_shape(muons.pt[mask], rweight[mask])

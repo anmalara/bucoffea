@@ -117,16 +117,6 @@ def vbfhinv_accumulator(cfg):
     # ParticleNet score distribution
     items["particlenet_score"] = Hist("Counts", dataset_ax, region_ax, score_ax, score_type_ax)
 
-    items["met_pt_ak40_hf"] = Hist("Counts", dataset_ax, region_ax, met_ax)
-    items["met_pt_ak41_hf"] = Hist("Counts", dataset_ax, region_ax, met_ax)
-
-    items["dnn_score"] = Hist("Counts", dataset_ax, region_ax, score_ax)
-    items["cnn_score"] = Hist("Counts", dataset_ax, region_ax, score_ax)
-    items["dnn_score_unc"] = Hist("Counts", dataset_ax, region_ax, score_ax, unc_ax)
-    items["cnn_score_unc"] = Hist("Counts", dataset_ax, region_ax, score_ax, unc_ax)
-    items["dnn_score_noewk"] = Hist("Counts", dataset_ax, region_ax, score_ax)
-    items["cnn_score_noewk"] = Hist("Counts", dataset_ax, region_ax, score_ax)
-
     items["mjj"] = Hist("Counts", dataset_ax, region_ax, mjj_ax)
     items["mjj_noewk"] = Hist("Counts", dataset_ax, region_ax, mjj_ax)
     items["mjj_nopref"] = Hist("Counts", dataset_ax, region_ax, mjj_ax)
@@ -140,26 +130,6 @@ def vbfhinv_accumulator(cfg):
     items["dphijj"] = Hist("Counts", dataset_ax, region_ax, dphi_ax)
     items["detajj"] = Hist("Counts", dataset_ax, region_ax, deta_ax)
 
-    # Fill and save histograms for the features that are used by the DNN
-    if cfg.NN_MODELS.DEEPNET.SAVE_FEATURES:
-        items["mjj_maxmjj"] = Hist("Counts", dataset_ax, region_ax, mjj_ax)
-        items["detajj_maxmjj"] = Hist("Counts", dataset_ax, region_ax, deta_ax)
-        items["dphijj_maxmjj"] = Hist("Counts", dataset_ax, region_ax, dphi_ax)
-        
-        items["ak4_pt0_maxmjj"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax)
-        items["ak4_eta0_maxmjj"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
-        items["ak4_pt1_maxmjj"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax)
-        items["ak4_eta1_maxmjj"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
-
-        items["ht"] = Hist("Counts", dataset_ax, region_ax, ht_ax)
-        items["dphi_ak40_met"] = Hist("Counts", dataset_ax, region_ax, dphi_ax)
-        items["dphi_ak41_met"] = Hist("Counts", dataset_ax, region_ax, dphi_ax)
-
-    # Transformed dijet variables (scaled to zero-mean, unit-variance)
-    items["mjj_transformed"] = Hist("Counts", dataset_ax, region_ax, transformed_ax)
-    items["detajj_transformed"] = Hist("Counts", dataset_ax, region_ax, transformed_ax)
-    items["dphijj_transformed"] = Hist("Counts", dataset_ax, region_ax, transformed_ax)
-
     items["mjj_ak4_eta0"] = Hist("Counts", dataset_ax, region_ax, mjj_ax_coarse, jet_eta_ax)
 
     items["ak4_pt0"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax)
@@ -169,7 +139,6 @@ def vbfhinv_accumulator(cfg):
     items["ak4_chf0"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nhf0"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nef0"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
-    items["ak4_nef0_eeonly"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nconst0"] = Hist("Counts", dataset_ax, region_ax, nconst_ax)
     items["ak4_mt0"] = Hist("Counts", dataset_ax, region_ax, mt_ax)
 
@@ -180,22 +149,14 @@ def vbfhinv_accumulator(cfg):
     items["ak4_chf1"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nhf1"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nef1"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
-    items["ak4_nef1_eeonly"] = Hist("Counts", dataset_ax, region_ax, frac_ax)
     items["ak4_nconst1"] = Hist("Counts", dataset_ax, region_ax, nconst_ax)
     items["ak4_mt1"] = Hist("Counts", dataset_ax, region_ax, mt_ax)
-
-    # Eta of the leading jet when the trailing jet is in HF
-    items["ak4_eta0_trailjetHF"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
-    items["ak4_eta1_trailjetHF"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
 
     items["ak4_central_eta"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
     items["ak4_forward_eta"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
 
-    items["ak4_pt0_chf0"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax_coarse, frac_ax)
-    items["ak4_pt0_nhf0"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax_coarse, frac_ax)
-    items["ak4_pt0_nconst0"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax_coarse, nconst_ax)
+    # Leading jet pt vs eta
     items["ak4_pt0_eta0"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax,jet_eta_ax_coarse)
-    items["ak4_pt0_eta0_hf"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax, eta_hf_ax)
 
     items["ak4_pt"] = Hist("Counts", dataset_ax, region_ax, jet_pt_ax)
     items["ak4_eta"] = Hist("Counts", dataset_ax, region_ax, jet_eta_ax)
@@ -217,9 +178,6 @@ def vbfhinv_accumulator(cfg):
     items["vecb"] = Hist("Counts", dataset_ax, region_ax, vecb_ax)
     items["vecdphi"] = Hist("Counts", dataset_ax, region_ax, vecdphi_ax)
     items["dphitkpf"] = Hist("Counts", dataset_ax, region_ax, dphi_ax)
-    items["dPFTkMET"] = Hist("Counts", dataset_ax, region_ax, dpftk_ax)
-
-    items["dphitkpf_ak4_eta0"] = Hist("Counts", dataset_ax, region_ax, dphitkpf_ax_coarse, jet_abseta_ax_coarse)
 
     # Multiplicity histograms
     for cand in ['ak4', 'ak8', 'bjet', 'loose_ele', 'loose_muo', 'tight_ele', 'tight_muo', 'tau', 'photon','hlt_single_muon','muons_hltmatch']:
