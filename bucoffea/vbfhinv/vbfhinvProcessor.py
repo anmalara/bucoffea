@@ -602,7 +602,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     exclude = ['prefire']
 
                 # HEM-veto weights for signal region MC
-                if re.match('^sr_vbf.*', region) and df['year'] == 2018 and 'no_hem_veto' not in region:
+                # Apply the weights only if MITIGATION.HEM is set to True
+                if re.match('^sr_vbf.*', region) and df['year'] == 2018 and 'no_hem_veto' not in region and cfg.MITIGATION.HEM:
                     # Events that lie in the HEM-veto region
                     events_to_weight_mask = (met_phi > -1.8) & (met_phi < -0.6)
                     # Weight is the "good lumi fraction" for 2018
