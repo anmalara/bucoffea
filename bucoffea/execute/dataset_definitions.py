@@ -180,7 +180,7 @@ def files_from_eos(regex):
     host = socket.gethostname()
     if 'lxplus' in host:
         topdir = '/eos/cms/store/group/phys_higgs/vbfhiggs'
-        tag = 'PFNANO_05Feb23_PostNanoTools'
+        tag = 'PFNANO_13Feb23_PostNanoTools'
         fileset = find_files(pjoin(topdir, tag), regex)
 
     elif 'lpc' in host:
