@@ -17,12 +17,13 @@ pjoin = os.path.join
 
 
 DATASET_LABELS = {
-    "VBF_HToInvisible.*M125.*" : "VBFH(inv)",
+    "VBF_HToInvisible.*M125.*" : "VBF H(inv)",
     "GluGlu.*HToInvisible.*M125.*" : "ggH(inv)",
+    "EWKZ2Jets.*ZToNuNu.*" : "EWK Z(vv)",
 }
 
 
-def plot_score_dist(acc, distribution, region, outdir):
+def plot_score_dist(acc, distribution, region, outdir, dataset):
     """
     Helper function to plot ParticleNet score distribution.
     """
@@ -43,7 +44,7 @@ def plot_score_dist(acc, distribution, region, outdir):
 
     # Plot!
     fig, ax = plt.subplots()
-    hist.plot1d(h, ax=ax, overlay='dataset')
+    hist.plot1d(h[re.compile(dataset)], ax=ax, overlay='dataset')
 
     # Update legend labels
     handles, labels = ax.get_legend_handles_labels()
@@ -142,19 +143,20 @@ def main():
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    regions = ["sr_vbf_no_veto_all", "sr_vbf_detajj_gt_3p0"]
+    regions = ["sr_vbf_no_veto_all"]
+
+    # Regular expression matching all the datasets we're interested in
+    dataset = "(VBF_HToInvisible|GluGlu_HToInvisible|EWKZ2Jets.*ZToNuNu).*2018"
+
 
     for region in tqdm(regions, desc="Plotting score distributions"):
         plot_score_dist(acc,
             distribution="particlenet_score",
             region=region,
             outdir=outdir,
+            dataset=dataset,
         )
 
-    compare_ggh_score_dist_with_high_detajj(acc,
-        outdir=outdir,
-        distribution="particlenet_score",
-    )
 
 if __name__ == '__main__':
     main()
