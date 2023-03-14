@@ -243,7 +243,6 @@ default:
       jet_images: False
       tree_regions:
         - sr_vbf_no_veto_all
-        - sr_vbf_no_dphijj_cut
     kinematics:
       save: False
       events:
