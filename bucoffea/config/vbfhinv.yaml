@@ -270,6 +270,10 @@ default:
       muon_sf: False
       veto_weights: False
       theory: True
+    
+    # List of additional regions to run (e.g. "sr_vbf_detajj_gt_3p0")
+    # Check out vbfhinv/definitions.py for the extra region definitions.
+    extra_regions: []
   triggers:
     ht:
       gammaeff:

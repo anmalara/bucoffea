@@ -445,12 +445,14 @@ def vbfhinv_regions(cfg):
     regions.update(tmp)
 
     # Region with high detajj cut
-    regions['sr_vbf_detajj_gt_3p0'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
-    regions['sr_vbf_detajj_gt_3p0'].append('detajj_gt_3p0')
+    if "sr_vbf_detajj_gt_3p0" in cfg.RUN.EXTRA_REGIONS:
+        regions['sr_vbf_detajj_gt_3p0'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
+        regions['sr_vbf_detajj_gt_3p0'].append('detajj_gt_3p0')
 
     # VBF signal region without the dphijj cut
-    regions['sr_vbf_no_dphijj_cut'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
-    regions['sr_vbf_no_dphijj_cut'].remove('dphijj')
+    if "sr_vbf_no_dphijj_cut" in cfg.RUN.EXTRA_REGIONS:
+        regions['sr_vbf_no_dphijj_cut'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
+        regions['sr_vbf_no_dphijj_cut'].remove('dphijj')
 
     if cfg and cfg.RUN.TRIGGER_STUDY:
         # Trigger studies
