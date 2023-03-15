@@ -22,6 +22,9 @@ def main():
         ],
         "MET_ver1_2018D" : [
             "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/MET/MET_ver1_2018D/230306_160535/0000/tree_10.root"
+        ],
+        "Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20_TuneCP5_13TeV-amcatnloFXFX-pythia8/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018/230303_183854/0000/tree_23.root"
         ]
     }
 
