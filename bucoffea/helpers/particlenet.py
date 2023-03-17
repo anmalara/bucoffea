@@ -4,6 +4,8 @@ import awkward as ak
 import onnxruntime as ort
 
 from coffea.analysis_objects import JaggedCandidateArray
+from bucoffea.helpers import object_overlap
+
 
 
 def load_particlenet_model(path):
@@ -40,7 +42,7 @@ def run_particlenet_model(session, inputs):
     return session.run(None, inputs)[0]
 
 
-def load_pf_cands(df):
+def load_pf_cands(df, objects_to_clean, dr_min=0.1):
     pfcands = JaggedCandidateArray.candidatesfromcounts(
         df['nPFCand'],
         pt=df['PFCand_pt'],
@@ -52,7 +54,8 @@ def load_pf_cands(df):
         charge=df['PFCand_charge'],
         puppiw=df['PFCand_puppiWeight'],
     )
-
+    for objs in objects_to_clean:
+        pfcands = pfcands[object_overlap(pfcands, objs, dr=dr_min)]
     return pfcands
 
 

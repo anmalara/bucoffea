@@ -197,9 +197,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # All leptons are at least loose
         # Check out setup_candidates for filtering details
         met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons = setup_candidates(df, cfg)
-
         # Set up ParticleNet
-        pfcands = load_pf_cands(df)
+        pfcands = load_pf_cands(df,[muons,electrons])
         session = load_particlenet_model(bucoffea_path("particlenet_models/model_ops12.onnx"))
         
         # Remove jets in accordance with the noise recipe
