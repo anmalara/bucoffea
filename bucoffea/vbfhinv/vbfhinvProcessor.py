@@ -81,10 +81,6 @@ def trigger_selection(selection, df, cfg):
     pass_none = ~pass_all
     dataset = df['dataset']
 
-    if df['is_data']:
-        selection.add('filt_met', mask_and(df, cfg.FILTERS.DATA))
-    else:
-        selection.add('filt_met', mask_and(df, cfg.FILTERS.MC))
     selection.add('trig_met', mask_or(df, cfg.TRIGGERS.MET))
 
     # Electron trigger overlap
@@ -121,6 +117,11 @@ def trigger_selection(selection, df, cfg):
     # Muon trigger
     selection.add('trig_mu', mask_or(df, cfg.TRIGGERS.MUON.SINGLE))
 
+    if df['is_data']:
+        selection.add('filt_met', mask_and(df, cfg.FILTERS.DATA))
+    else:
+        selection.add('filt_met', mask_and(df, cfg.FILTERS.MC))
+    
     return selection
 
 class vbfhinvProcessor(processor.ProcessorABC):
