@@ -601,7 +601,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     exclude = ['prefire']
 
                 # HEM-veto weights for signal region MC
-                if re.match('^sr_vbf.*', region) and df['year'] == 2018 and 'no_hem_veto' not in region:
+                # Apply the weights only if MITIGATION.HEM is set to True
+                if re.match('^sr_vbf.*', region) and df['year'] == 2018 and 'no_hem_veto' not in region and cfg.MITIGATION.HEM:
                     # Events that lie in the HEM-veto region
                     events_to_weight_mask = (met_phi > -1.8) & (met_phi < -0.6)
                     # Weight is the "good lumi fraction" for 2018
@@ -630,10 +631,9 @@ class vbfhinvProcessor(processor.ProcessorABC):
             mask = selection.all(*cuts)
 
             # Prepare ParticleNet inputs and run the model
-            # First check if there are passing events after the selection
+            # If there are no events in particlenet_inputs, run_particlenet_model() returns an empty NumPy array.
             particlenet_inputs = build_particlenet_inputs(pfcands, mask)
-            if particlenet_inputs["pf_features"].shape[0] > 0:
-                scores = run_particlenet_model(session, particlenet_inputs)
+            scores = run_particlenet_model(session, particlenet_inputs)
 
             if cfg.RUN.SAVE.TREE:
                 if region in cfg.RUN.SAVE.TREE_REGIONS: 
@@ -688,7 +688,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     output['tree_float16'][region]["nMediumBJet"]       +=  processor.column_accumulator(np.float16(bjets.counts[mask]))
                     
                     # ParticleNet VBF score
-                    output['tree_float16'][region]["particleNet_vbfScore"]   +=  processor.column_accumulator(np.float16(scores[:, 0]))
+                    if len(scores) > 0:
+                        output['tree_float16'][region]["particleNet_vbfScore"]   +=  processor.column_accumulator(np.float16(scores[:, 0]))
                     
                     # Dataset labels
                     if re.match("VBF_HToInvisible.*M125.*", df["dataset"]):
@@ -910,7 +911,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
             ezfill('detajj',             deta=df["detajj"][mask],   weight=rweight[mask] )
             ezfill('mjj',                mjj=df["mjj"][mask],       weight=rweight[mask] )
 
-            if particlenet_inputs["pf_features"].shape[0] > 0:
+            if len(scores) > 0:
                 ezfill('particlenet_score',   score=scores[:,0],   score_type="VBF-like",   weight=rweight[mask])
                 ezfill('particlenet_score',   score=scores[:,1],   score_type="ggH-like",   weight=rweight[mask])
 

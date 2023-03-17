@@ -17,6 +17,28 @@ def load_particlenet_model(path):
 
 
 def run_particlenet_model(session, inputs):
+    """
+    Runs the ParticleNet model and returns the VBF-like and ggH-like scores as a 2D array.
+
+    The inputs must be a dictionary, and should be the output of build_particlenet_inputs() call.
+    This dictionary should have the following keys:
+
+    - "pf_features"
+    - "pf_points"
+    - "pf_mask"
+
+    If there are no input events in the inputs dict, this returns an empty NumPy array.
+    """
+    # Check if input dict makes sense
+    keys = ["pf_features", "pf_points", "pf_mask"]
+    for key in keys:
+        if key not in inputs:
+            raise RuntimeError(f"Invalid input given for ParticleNet, key not found: {key}")
+    
+    # If there are no input events, return an empty array
+    if inputs["pf_features"].shape[0] == 0:
+        return np.array([])
+
     return session.run(None, inputs)[0]
 
 
