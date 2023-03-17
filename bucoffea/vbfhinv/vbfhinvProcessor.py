@@ -238,9 +238,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         df['MT_el'] = ((electrons.counts==1) * mt(electrons.pt, electrons.phi, met_pt, met_phi)).max()
 
-        # ak4
-        leadak4_index=ak4.pt.argmax()
-
         elejet_pairs = ak4[:,:1].cross(electrons)
         df['dREleJet'] = np.hypot(elejet_pairs.i0.eta-elejet_pairs.i1.eta , dphi(elejet_pairs.i0.phi,elejet_pairs.i1.phi)).min()
         muonjet_pairs = ak4[:,:1].cross(muons)
@@ -262,6 +259,9 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         df["minDPhiJetRecoil"] = min_dphi_jet_met(ak4, df['recoil_phi'], njet=4, ptmin=30, etamax=5.0)
         df["minDPhiJetMet"] = min_dphi_jet_met(ak4, met_phi, njet=4, ptmin=30, etamax=5.0)
+
+        # ak4
+        leadak4_index=ak4.pt.argmax()
 
         jets_for_cut = ak4[(ak4.pt > cfg.RUN.HF_PT_THRESH) & (ak4.abseta > 2.99) & (ak4.abseta < 5.0)]
 
@@ -286,42 +286,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         stripsize_cut_alljets = (jets_for_cut.hfcentralstripsize < 3).all()
 
         fail_hf_cuts = (~setaphi_cut_alljets) | (~stripsize_cut_alljets)
-        
-        selection = processor.PackedSelection()
-
-        # Triggers
-        pass_all = np.ones(df.size)==1
-        selection.add('inclusive', pass_all)
-        selection = trigger_selection(selection, df, cfg)
-
-        selection.add('mu_pt_trig_safe', muons.pt.max() > 30)
-
-        # Common selection
-        selection.add('veto_ele', electrons.counts==0)
-        selection.add('veto_muo', muons.counts==0)
-        selection.add('veto_photon', photons.counts==0)
-        selection.add('veto_tau', taus.counts==0)
-        selection.add('at_least_one_tau', taus.counts>0)
-        selection.add('mindphijr',df['minDPhiJetRecoil'] > cfg.SELECTION.SIGNAL.MINDPHIJR)
-        selection.add('mindphijm',df['minDPhiJetMet'] > cfg.SELECTION.SIGNAL.MINDPHIJR)
-
-        # Inverted min DPhi(j,met) cut for QCD CR
-        selection.add('mindphijr_inv', df['minDPhiJetRecoil'] <= cfg.SELECTION.SIGNAL.MINDPHIJR)
-
-        # B jets are treated using veto weights
-        # So accept them in MC, but reject in data
-        if df['is_data']:
-            selection.add('veto_b', bjets.counts==0)
-        else:
-            selection.add('veto_b', pass_all)
-
-        selection.add('dpfcalo_sr',np.abs(df['dPFCaloSR']) < cfg.SELECTION.SIGNAL.DPFCALO)
-        selection.add('dpfcalo_cr',np.abs(df['dPFCaloCR']) < cfg.SELECTION.SIGNAL.DPFCALO)
-
-        selection.add('recoil', df['recoil_pt']>cfg.SELECTION.SIGNAL.RECOIL)
-        selection.add('met_sr', met_pt>cfg.SELECTION.SIGNAL.RECOIL)
-
-        selection.add('calo_metptnolep', df['CaloRecoil_pt'] > 200)
 
         # AK4 dijet
         diak4 = ak4[:,:2].distincts()
@@ -353,19 +317,53 @@ class vbfhinvProcessor(processor.ProcessorABC):
         df['htmiss'] = ak4[ak4.pt>30].p4.sum().pt
         df['ht'] = ak4[ak4.pt>30].pt.sum()
 
+        selection = processor.PackedSelection()
+
+        # Triggers
+        pass_all = np.ones(df.size)==1
+        selection.add('inclusive', pass_all)
+        selection = trigger_selection(selection, df, cfg)
+
+        selection.add('mu_pt_trig_safe', muons.pt.max() > 30)
+
+        # Common selection
+        selection.add('veto_ele', electrons.counts==0)
+        selection.add('veto_muo', muons.counts==0)
+        selection.add('veto_photon', photons.counts==0)
+        selection.add('veto_tau', taus.counts==0)
+        selection.add('at_least_one_tau', taus.counts>0)
+        # B jets are treated using veto weights
+        # So accept them in MC, but reject in data
+        if df['is_data']:
+            selection.add('veto_b', bjets.counts==0)
+        else:
+            selection.add('veto_b', pass_all)
+        
+        selection.add('mindphijr',df['minDPhiJetRecoil'] > cfg.SELECTION.SIGNAL.MINDPHIJR)
+        selection.add('mindphijm',df['minDPhiJetMet'] > cfg.SELECTION.SIGNAL.MINDPHIJR)
+
+        # Inverted min DPhi(j,met) cut for QCD CR
+        selection.add('mindphijr_inv', df['minDPhiJetRecoil'] <= cfg.SELECTION.SIGNAL.MINDPHIJR)
+
+        selection.add('dpfcalo_sr',np.abs(df['dPFCaloSR']) < cfg.SELECTION.SIGNAL.DPFCALO)
+        selection.add('dpfcalo_cr',np.abs(df['dPFCaloCR']) < cfg.SELECTION.SIGNAL.DPFCALO)
+
+        selection.add('recoil', df['recoil_pt']>cfg.SELECTION.SIGNAL.RECOIL)
+        selection.add('met_sr', met_pt>cfg.SELECTION.SIGNAL.RECOIL)
+
+        selection.add('calo_metptnolep', df['CaloRecoil_pt'] > 200)
+
         # HEM mask for 2018 data
         # For MC, we're reweighting events with the fraction of good lumi, 
         # so the cut is defined as pass_all here
+        metphihem_mask = pass_all
+        no_el_in_hem_mask = pass_all
         if df['year'] == 2018:
+            no_el_in_hem_mask = electrons[electrons_in_hem(electrons)].counts==0
             if df['is_data']:
                 metphihem_mask = ~((met_phi > -1.8) & (met_phi < -0.6) & (df['run'] > 319077))
-            else:
-                metphihem_mask = pass_all
-            selection.add("metphihemextveto", metphihem_mask)
-            selection.add('no_el_in_hem', electrons[electrons_in_hem(electrons)].counts==0)
-        else:
-            selection.add("metphihemextveto", pass_all)
-            selection.add('no_el_in_hem', pass_all)
+        selection.add("metphihemextveto", metphihem_mask)
+        selection.add('no_el_in_hem', no_el_in_hem_mask)
 
         # Sigma eta & phi cut (only for v8 samples because we have the info there)
         if cfg.RUN.ULEGACYV8:
@@ -381,12 +379,15 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('two_jets', diak4.counts>0)
         selection.add('leadak4_pt_eta', leadak4_pt_eta.any())
         selection.add('trailak4_pt_eta', trailak4_pt_eta.any())
-        selection.add('hemisphere', hemisphere)
         selection.add('leadak4_id',leadak4_id.any())
         selection.add('trailak4_id',trailak4_id.any())
+        selection.add('hemisphere', hemisphere)
         selection.add('mjj', df['mjj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.MASS)
         selection.add('dphijj', df['dphijj'] < cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DPHI)
         selection.add('detajj', df['detajj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DETA)
+        
+        # Reject events where the leading jet has momentum > 6.5 TeV
+        selection.add('leadak4_clean', leadak4_clean.any())
 
         # Tighter detajj cut for ML studies
         selection.add('detajj_gt_3p0', df['detajj'] > 3.0)
@@ -396,9 +397,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         vec_b = calculate_vecB(ak4, met_pt, met_phi)
         vec_dphi = calculate_vecDPhi(ak4, met_pt, met_phi, df['TkMET_phi'])
         dphitkpf = dphi(met_phi, df['TkMET_phi'])
-
-        # Reject events where the leading jet has momentum > 6.5 TeV
-        selection.add('leadak4_clean', leadak4_clean.any())
 
         # Divide into three categories for trigger study
         if cfg.RUN.TRIGGER_STUDY:
@@ -419,32 +417,30 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         # Dimuon CR
         selection.add('at_least_one_tight_mu', df['is_tight_muon'].any())
+        selection.add('two_muons', muons.counts==2)
+        selection.add('dimuon_charge', (dimuon_charge==0).any())
         selection.add('dimuon_mass', ((dimuons.mass > cfg.SELECTION.CONTROL.DOUBLEMU.MASS.MIN) \
                                     & (dimuons.mass < cfg.SELECTION.CONTROL.DOUBLEMU.MASS.MAX)).any())
-        selection.add('dimuon_charge', (dimuon_charge==0).any())
-        selection.add('two_muons', muons.counts==2)
 
         # Single muon CR
         selection.add('one_muon', muons.counts==1)
         selection.add('mt_mu', df['MT_mu'] < cfg.SELECTION.CONTROL.SINGLEMU.MT)
 
         # Diele CR
-
-        selection.add('one_electron', electrons.counts==1)
-        selection.add('two_electrons', electrons.counts==2)
         selection.add('at_least_one_tight_el', df['is_tight_electron'].any())
-
+        selection.add('two_electrons', electrons.counts==2)
+        selection.add('dielectron_charge', (dielectron_charge==0).any())
         selection.add('dielectron_mass', ((dielectrons.mass > cfg.SELECTION.CONTROL.DOUBLEEL.MASS.MIN)  \
                                         & (dielectrons.mass < cfg.SELECTION.CONTROL.DOUBLEEL.MASS.MAX)).any())
-        selection.add('dielectron_charge', (dielectron_charge==0).any())
 
         # Single Ele CR
+        selection.add('one_electron', electrons.counts==1)
         selection.add('met_el', met_pt > cfg.SELECTION.CONTROL.SINGLEEL.MET)
         selection.add('mt_el', df['MT_el'] < cfg.SELECTION.CONTROL.SINGLEEL.MT)
 
         # Photon CR
-        selection.add('one_photon', photons.counts==1)
         selection.add('at_least_one_tight_photon', df['is_tight_photon'].any())
+        selection.add('one_photon', photons.counts==1)
         selection.add('photon_pt', photons.pt.max() > cfg.PHOTON.CUTS.TIGHT.PT)
         selection.add('photon_pt_trig', photons.pt.max() > cfg.PHOTON.CUTS.TIGHT.PTTRIG)
 
