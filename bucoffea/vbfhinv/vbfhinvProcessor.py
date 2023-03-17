@@ -211,8 +211,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
         ak4 = ak4[ak4.puid]
 
         # Recalculate MET pt and phi based on npv-corrections
+        met_pt_uncorr, met_phi_uncorr = met_pt, met_phi
         if cfg.MET.XYCORR:
-            met_pt_uncorr, met_phi_uncorr = met_pt, met_phi
             met_pt, met_phi = met_xy_correction(df, met_pt, met_phi)
 
         # Muons
@@ -221,6 +221,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
                       & (muons.pt>cfg.MUON.CUTS.TIGHT.PT) \
                       & (muons.abseta<cfg.MUON.CUTS.TIGHT.ETA)
 
+        leadmuon_index=muons.pt.argmax()
         dimuons = muons.distincts()
         dimuon_charge = dimuons.i0['charge'] + dimuons.i1['charge']
 
@@ -231,6 +232,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
                             & (electrons.pt > cfg.ELECTRON.CUTS.TIGHT.PT) \
                             & (electrons.absetasc < cfg.ELECTRON.CUTS.TIGHT.ETA)
 
+        leadelectron_index=electrons.pt.argmax()
         dielectrons = electrons.distincts()
         dielectron_charge = dielectrons.i0['charge'] + dielectrons.i1['charge']
 
@@ -244,6 +246,10 @@ class vbfhinvProcessor(processor.ProcessorABC):
         muonjet_pairs = ak4[:,:1].cross(muons)
         df['dRMuonJet'] = np.hypot(muonjet_pairs.i0.eta-muonjet_pairs.i1.eta , dphi(muonjet_pairs.i0.phi,muonjet_pairs.i1.phi)).min()
 
+        # photons
+        leadphoton_index=photons.pt.argmax()
+        df['is_tight_photon'] = photons.mediumId & photons.barrel
+
         # Recoil
         df['recoil_pt_uncorr'], df['recoil_phi_uncorr'] = recoil(met_pt_uncorr, met_phi_uncorr, electrons, muons, photons)
         df['recoil_pt'], df['recoil_phi'] = recoil(met_pt,met_phi, electrons, muons, photons)
@@ -256,6 +262,31 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         df["minDPhiJetRecoil"] = min_dphi_jet_met(ak4, df['recoil_phi'], njet=4, ptmin=30, etamax=5.0)
         df["minDPhiJetMet"] = min_dphi_jet_met(ak4, met_phi, njet=4, ptmin=30, etamax=5.0)
+
+        jets_for_cut = ak4[(ak4.pt > cfg.RUN.HF_PT_THRESH) & (ak4.abseta > 2.99) & (ak4.abseta < 5.0)]
+
+        # We will only consider jets that are back to back with MET i.e. dPhi(jet,MET) > 2.5
+        dphi_hfjet_met = dphi(jets_for_cut.phi, df['recoil_phi'])
+        dphimask = dphi_hfjet_met > 2.5
+        jets_for_cut = jets_for_cut[dphimask]
+
+        seta_minus_phi_alljets = jets_for_cut.setaeta - jets_for_cut.sphiphi
+
+        # Cut away the low sigma eta & phi corner (< 0.02)
+        setaphi_corner_cut = ~((jets_for_cut.setaeta < 0.02) & (jets_for_cut.sphiphi < 0.02))
+        # Sigma eta - phi < 0.02 requirement
+        setaphi_diff_cut_alljets = (seta_minus_phi_alljets < 0.02)
+
+        # For jets with |eta| > 4, we have a different requirement
+        setaphi_cut_higheta = (jets_for_cut.setaeta < 0.1) & (jets_for_cut.sphiphi > 0.02)
+
+        is_high_eta_jet = jets_for_cut.abseta > 4.0
+        setaphi_cut_alljets = (is_high_eta_jet * setaphi_cut_higheta + ~is_high_eta_jet * (setaphi_corner_cut & setaphi_diff_cut_alljets)).all()
+
+        stripsize_cut_alljets = (jets_for_cut.hfcentralstripsize < 3).all()
+
+        fail_hf_cuts = (~setaphi_cut_alljets) | (~stripsize_cut_alljets)
+        
         selection = processor.PackedSelection()
 
         # Triggers
@@ -294,6 +325,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         # AK4 dijet
         diak4 = ak4[:,:2].distincts()
+        leadak4_clean = diak4.i0.pt * np.cosh(diak4.i0.eta) < 6500
         leadak4_pt_eta = (diak4.i0.pt > cfg.SELECTION.SIGNAL.LEADAK4.PT) & (np.abs(diak4.i0.eta) < cfg.SELECTION.SIGNAL.LEADAK4.ETA)
         trailak4_pt_eta = (diak4.i1.pt > cfg.SELECTION.SIGNAL.TRAILAK4.PT) & (np.abs(diak4.i1.eta) < cfg.SELECTION.SIGNAL.TRAILAK4.ETA)
         hemisphere = (diak4.i0.eta * diak4.i1.eta < 0).any()
@@ -337,30 +369,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
 
         # Sigma eta & phi cut (only for v8 samples because we have the info there)
         if cfg.RUN.ULEGACYV8:
-            jets_for_cut = ak4[(ak4.pt > cfg.RUN.HF_PT_THRESH) & (ak4.abseta > 2.99) & (ak4.abseta < 5.0)]
-
-            # We will only consider jets that are back to back with MET i.e. dPhi(jet,MET) > 2.5
-            dphi_hfjet_met = dphi(jets_for_cut.phi, df['recoil_phi'])
-            dphimask = dphi_hfjet_met > 2.5
-            jets_for_cut = jets_for_cut[dphimask]
-
-            seta_minus_phi_alljets = jets_for_cut.setaeta - jets_for_cut.sphiphi
-
-            # Cut away the low sigma eta & phi corner (< 0.02)
-            setaphi_corner_cut = ~((jets_for_cut.setaeta < 0.02) & (jets_for_cut.sphiphi < 0.02))
-            # Sigma eta - phi < 0.02 requirement
-            setaphi_diff_cut_alljets = (seta_minus_phi_alljets < 0.02)
-
-            # For jets with |eta| > 4, we have a different requirement
-            setaphi_cut_higheta = (jets_for_cut.setaeta < 0.1) & (jets_for_cut.sphiphi > 0.02)
-
-            is_high_eta_jet = jets_for_cut.abseta > 4.0
-            setaphi_cut_alljets = (is_high_eta_jet * setaphi_cut_higheta + ~is_high_eta_jet * (setaphi_corner_cut & setaphi_diff_cut_alljets)).all()
-            
-            stripsize_cut_alljets = (jets_for_cut.hfcentralstripsize < 3).all()
-
-            fail_hf_cuts = (~setaphi_cut_alljets) | (~stripsize_cut_alljets)
-            
             selection.add('sigma_eta_minus_phi', setaphi_cut_alljets)
             selection.add('central_stripsize_cut', stripsize_cut_alljets)
             selection.add('fail_hf_cuts', fail_hf_cuts)
@@ -390,7 +398,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         dphitkpf = dphi(met_phi, df['TkMET_phi'])
 
         # Reject events where the leading jet has momentum > 6.5 TeV
-        leadak4_clean = diak4.i0.pt * np.cosh(diak4.i0.eta) < 6500
         selection.add('leadak4_clean', leadak4_clean.any())
 
         # Divide into three categories for trigger study
@@ -411,7 +418,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
             selection.add('one_fifth_mask', pass_all)
 
         # Dimuon CR
-        leadmuon_index=muons.pt.argmax()
         selection.add('at_least_one_tight_mu', df['is_tight_muon'].any())
         selection.add('dimuon_mass', ((dimuons.mass > cfg.SELECTION.CONTROL.DOUBLEMU.MASS.MIN) \
                                     & (dimuons.mass < cfg.SELECTION.CONTROL.DOUBLEMU.MASS.MAX)).any())
@@ -423,7 +429,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('mt_mu', df['MT_mu'] < cfg.SELECTION.CONTROL.SINGLEMU.MT)
 
         # Diele CR
-        leadelectron_index=electrons.pt.argmax()
 
         selection.add('one_electron', electrons.counts==1)
         selection.add('two_electrons', electrons.counts==2)
@@ -438,10 +443,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('mt_el', df['MT_el'] < cfg.SELECTION.CONTROL.SINGLEEL.MT)
 
         # Photon CR
-        leadphoton_index=photons.pt.argmax()
-
-        df['is_tight_photon'] = photons.mediumId & photons.barrel
-
         selection.add('one_photon', photons.counts==1)
         selection.add('at_least_one_tight_photon', df['is_tight_photon'].any())
         selection.add('photon_pt', photons.pt.max() > cfg.PHOTON.CUTS.TIGHT.PT)
