@@ -438,16 +438,14 @@ def setup_candidates(df, cfg):
         hadflav= 0*df['Jet_pt'] if df['is_data'] else df['Jet_hadronFlavour'],
     )
 
-    # Only fur UL v8 samples, the new HF shape variables
-    if cfg.RUN.ULEGACYV8:
-        kwargs = {
-            'setaeta': df['Jet_hfsigmaEtaEta'],
-            'sphiphi': df['Jet_hfsigmaPhiPhi'],
-            'hfcentralstripsize': df['Jet_hfcentralEtaStripSize'],
-            'hfadjacentstripsize': df['Jet_hfadjacentEtaStripsSize'],
-            'btagdf': df['Jet_btagDeepFlavQG'],
-        }
-        ak4.add_attributes(**kwargs)
+    kwargs = {
+        'setaeta': df['Jet_hfsigmaEtaEta'],
+        'sphiphi': df['Jet_hfsigmaPhiPhi'],
+        'hfcentralstripsize': df['Jet_hfcentralEtaStripSize'],
+        'hfadjacentstripsize': df['Jet_hfadjacentEtaStripsSize'],
+        'btagdf': df['Jet_btagDeepFlavQG'],
+    }
+    ak4.add_attributes(**kwargs)
 
     if not df['is_data']:
         ak4.add_attributes(jercorr=df['Jet_corr_JER'])
@@ -487,15 +485,7 @@ def setup_candidates(df, cfg):
     if cfg.OVERLAP.AK4.PHOTON.CLEAN:
         ak4 = ak4[object_overlap(ak4, photons, dr=cfg.OVERLAP.AK4.PHOTON.DR)]
 
-    # No EE v2 fix in UL
-    if cfg.RUN.ULEGACYV8:
-        met_branch = 'MET'
-    else:
-        if extract_year(df['dataset']) == 2017:
-            met_branch = 'METFixEE2017'
-        else:
-            met_branch = 'MET'
-
+    met_branch = 'MET'
     met_pt = df[f'{met_branch}_pt{jes_suffix_met}']
     met_phi = df[f'{met_branch}_phi{jes_suffix_met}']
     
@@ -952,14 +942,9 @@ def candidate_weights(weights, df, evaluator, muons, electrons, photons, cfg):
     # Electron ID and reco
     # Function of eta, pT (Other way round relative to muons!)
 
-    # For 2017 and 2018 (both years in UL), the reco SF is split below/above 20 GeV
-    if cfg.RUN.ULEGACYV8 or extract_year(df['dataset']) == 2017:
-        high_et = electrons.pt>20
-        ele_reco_sf = evaluator['ele_reco'](electrons.etasc[high_et], electrons.pt[high_et])
-        ele_reco_sf_low_pt = evaluator['ele_reco_pt_lt_20'](electrons.etasc[~high_et], electrons.pt[~high_et])
-
-    else:
-        ele_reco_sf = evaluator['ele_reco'](electrons.etasc, electrons.pt)
+    high_et = electrons.pt>20
+    ele_reco_sf = evaluator['ele_reco'](electrons.etasc[high_et], electrons.pt[high_et])
+    ele_reco_sf_low_pt = evaluator['ele_reco_pt_lt_20'](electrons.etasc[~high_et], electrons.pt[~high_et])
     
     if cfg.ELECTRON.GENCHECK:
         ele_reco_sf = gen_match_check_leptons(electrons[high_et], ele_reco_sf).prod()
