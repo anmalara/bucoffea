@@ -67,31 +67,22 @@ def get_veto_weights(df, cfg, evaluator, electrons, muons, taus, do_variations=F
 
 
         ### Electrons (For UL: Both 2017 and 2018 have their SFs split by electron pt)
-        if extract_year(df['dataset']) == 2017 or cfg.RUN.ULEGACYV8:
-            high_et = electrons.pt>20
+        high_et = electrons.pt>20
 
-            # Low pt SFs
-            low_pt_args = (electrons.etasc[~high_et], electrons.pt[~high_et])
-            ele_reco_sf_low = varied_weight('ele_reco_pt_lt_20', *low_pt_args)
-            ele_id_sf_low = varied_weight("ele_id_loose", *low_pt_args)
+        # Low pt SFs
+        low_pt_args = (electrons.etasc[~high_et], electrons.pt[~high_et])
+        ele_reco_sf_low = varied_weight('ele_reco_pt_lt_20', *low_pt_args)
+        ele_id_sf_low = varied_weight("ele_id_loose", *low_pt_args)
 
-            # High pt SFs
-            high_pt_args = (electrons.etasc[high_et], electrons.pt[high_et])
+        # High pt SFs
+        high_pt_args = (electrons.etasc[high_et], electrons.pt[high_et])
 
-            ele_reco_sf_high = varied_weight("ele_reco", *high_pt_args)
-            ele_id_sf_high = varied_weight("ele_id_loose", *high_pt_args)
+        ele_reco_sf_high = varied_weight("ele_reco", *high_pt_args)
+        ele_id_sf_high = varied_weight("ele_id_loose", *high_pt_args)
 
-            # Combine
-            veto_weight_ele = (1 - ele_reco_sf_low*ele_id_sf_low).prod() * (1-ele_reco_sf_high*ele_id_sf_high).prod()
-        else:
-            # No split for 2018
-            args = (electrons.etasc, electrons.pt)
-            ele_reco_sf = varied_weight("ele_reco", *args)
-            ele_id_sf = varied_weight("ele_id_loose", *args)
-
-            # Combine
-            veto_weight_ele = (1 - ele_id_sf*ele_reco_sf).prod()
-
+        # Combine
+        veto_weight_ele = (1 - ele_reco_sf_low*ele_id_sf_low).prod() * (1-ele_reco_sf_high*ele_id_sf_high).prod()
+        
         # Gen-checking for electrons
         if cfg.ELECTRON.GENCHECK:
             veto_weight_ele = gen_check_for_leptons(electrons, veto_weight_ele)

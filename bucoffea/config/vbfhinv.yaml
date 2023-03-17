@@ -222,7 +222,6 @@ default:
 
   run:
     sync: False
-    ulegacyv8: True
     one_fifth_unblind: False
     tight_mjj_cut: False
     qcd_estimation: True
