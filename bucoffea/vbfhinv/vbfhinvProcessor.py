@@ -201,11 +201,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # Set up ParticleNet
         pfcands = load_pf_cands(df,[muons,electrons])
         session = load_particlenet_model(bucoffea_path("particlenet_models/model_ops12.onnx"))
-        
-        # Remove jets in accordance with the noise recipe
-        if not cfg.RUN.ULEGACYV8 and df['year'] == 2017:
-            ak4   = ak4[(ak4.ptraw>50) | (ak4.abseta<2.65) | (ak4.abseta>3.139)]
-            bjets = bjets[(bjets.ptraw>50) | (bjets.abseta<2.65) | (bjets.abseta>3.139)]
 
         # Filtering ak4 jets according to pileup ID
         ak4 = ak4[ak4.puid]
@@ -331,7 +326,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('veto_muo', muons.counts==0)
         selection.add('veto_photon', photons.counts==0)
         selection.add('veto_tau', taus.counts==0)
-        selection.add('at_least_one_tau', taus.counts>0)
+        
         # B jets are treated using veto weights
         # So accept them in MC, but reject in data
         if df['is_data']:
@@ -365,16 +360,9 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add("metphihemextveto", metphihem_mask)
         selection.add('no_el_in_hem', no_el_in_hem_mask)
 
-        # Sigma eta & phi cut (only for v8 samples because we have the info there)
-        if cfg.RUN.ULEGACYV8:
-            selection.add('sigma_eta_minus_phi', setaphi_cut_alljets)
-            selection.add('central_stripsize_cut', stripsize_cut_alljets)
-            selection.add('fail_hf_cuts', fail_hf_cuts)
-
-        else:
-            selection.add('sigma_eta_minus_phi', pass_all)
-            selection.add('central_stripsize_cut', pass_all)
-            selection.add('fail_hf_cuts', pass_all)
+        selection.add('sigma_eta_minus_phi', setaphi_cut_alljets)
+        selection.add('central_stripsize_cut', stripsize_cut_alljets)
+        selection.add('fail_hf_cuts', fail_hf_cuts)
 
         selection.add('two_jets', diak4.counts>0)
         selection.add('leadak4_pt_eta', leadak4_pt_eta.any())
@@ -385,7 +373,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('mjj', df['mjj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.MASS)
         selection.add('dphijj', df['dphijj'] < cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DPHI)
         selection.add('detajj', df['detajj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DETA)
-        
+
         # Reject events where the leading jet has momentum > 6.5 TeV
         selection.add('leadak4_clean', leadak4_clean.any())
 
