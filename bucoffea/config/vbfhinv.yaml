@@ -135,7 +135,7 @@ default:
         clean: false
         dr: 0.4
   mitigation:
-    hem: false
+    hem: True
 
   sf:
     qcd_ew_nlo_w: # QCD x EW k factor for QCD Z
@@ -221,7 +221,6 @@ default:
       use_average: False
 
   run:
-    sync: False
     one_fifth_unblind: False
     tight_mjj_cut: False
     qcd_estimation: True
@@ -232,7 +231,7 @@ default:
     regionregex: .*
     apply_hf_cuts: True
     hf_pt_thresh: 80
-    region_without_dijet_cuts: False
+    region_without_dijet_cuts: True
     apply_weights:
       hfmask: False
       endcap: False
@@ -242,6 +241,7 @@ default:
       jet_images: False
       tree_regions:
         - sr_vbf_no_veto_all
+        - sr_vbf
     kinematics:
       save: False
       events:
