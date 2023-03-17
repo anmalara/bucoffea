@@ -273,24 +273,31 @@ def vbfhinv_accumulator(cfg):
     return  processor.dict_accumulator(items)
 
 def vbfhinv_regions(cfg):
+    # 'inclusive'    # 'veto_b',
+    def clean_lists(orig_list, to_remove):
+        return list(filter(lambda x: x not in to_remove, orig_list))
+    
+    def add_lists(orig_list, to_add):
+        return list(orig_list+ to_add)
+    
     common_cuts = [
+        'filt_met',
         'veto_ele',
         'veto_muo',
-        'filt_met',
+        'veto_photon',
+        'veto_tau',
+        'veto_b',
         'mindphijr',
         'recoil',
         'two_jets',
         'leadak4_pt_eta',
-        'leadak4_id',
         'trailak4_pt_eta',
+        'leadak4_id',
         'trailak4_id',
         'hemisphere',
         'mjj',
         'dphijj',
         'detajj',
-        'veto_photon',
-        'veto_tau',
-        'veto_b',
         'leadak4_clean'
     ]
 
@@ -326,7 +333,7 @@ def vbfhinv_regions(cfg):
         regions['sr_vbf'].remove('eemitigation')
 
     if cfg.RUN.REGION_WITHOUT_DIJET_CUTS:
-        regions['sr_vbf_nodijetcut'] = [cut for cut in regions['sr_vbf'] if cut not in ['mjj','detajj','dphijj']]
+        regions['sr_vbf_nodijetcut'] = clean_lists(regions['sr_vbf'], ['mjj','detajj','dphijj'])
 
     # SR without PU weights
     # regions['sr_vbf_no_pu'] = copy.deepcopy(regions['sr_vbf'])
@@ -334,180 +341,86 @@ def vbfhinv_regions(cfg):
 
     # SR without HEM veto
     if cfg.RUN.HEMCHECK:
-        regions['sr_vbf_no_hem_veto'] = copy.deepcopy(regions['sr_vbf'])
-        regions['sr_vbf_no_hem_veto'].remove('metphihemextveto')
+        regions['sr_vbf_no_hem_veto'] = clean_lists(regions['sr_vbf'], ['metphihemextveto'])
 
     # QCD CR with the HF shape cuts inverted
     if cfg.RUN.QCD_ESTIMATION:
-        regions['cr_vbf_qcd'] = copy.deepcopy(regions['sr_vbf'])
+        to_remove = ['central_stripsize_cut', 'sigma_eta_minus_phi']
+        regions['cr_vbf_qcd'] = clean_lists(regions['sr_vbf'], to_remove)
         if 'one_fifth_mask' in regions['cr_vbf_qcd']:
             regions['cr_vbf_qcd'].remove('one_fifth_mask')
-        try:
-            regions['cr_vbf_qcd'].remove('central_stripsize_cut')
-            regions['cr_vbf_qcd'].remove('sigma_eta_minus_phi')
-        except:
-            pass
         regions['cr_vbf_qcd'].append('fail_hf_cuts')
 
     # QCD CR to check with deltaphi(jet,MET) cut inverted
     # Will be used to compare the yields with the QCD template obtained from R&S
     if cfg.RUN.REBSMEAR_CHECK:
-        regions['cr_vbf_qcd_rs'] = copy.deepcopy(regions['sr_vbf'])
-        regions['cr_vbf_qcd_rs'].remove('mindphijr')
-        regions['cr_vbf_qcd_rs'].append('mindphijr_inv')
-
-    # For sync mode
-    if cfg and cfg.RUN.SYNC:
-        regions['cr_sync'] = [
-            'trig_met',
-            'veto_photon',
-            'mindphijr',
-            'recoil',
-            'two_jets',
-            'leadak4_pt_eta',
-            'leadak4_id',
-            'trailak4_pt_eta',
-            'trailak4_id',
-            'hemisphere',
-            'mjj',
-            'dphijj',
-            'detajj'
-        ]
-
+        regions['cr_vbf_qcd_rs'] = clean_lists(regions['sr_vbf'], ['mindphijr'])
+        regions['cr_vbf_qcd_rs'] = add_lists(regions['cr_vbf_qcd_rs'], ['mindphijr_inv'])
+    
     # Dimuon CR
-    cr_2m_cuts = ['trig_met','two_muons', 'at_least_one_tight_mu', 'dimuon_mass', 'veto_ele', 'dimuon_charge'] + common_cuts[1:] + ['dpfcalo_cr']
-
-    cr_2m_cuts.remove('veto_muo')
-
-    regions['cr_2m_vbf'] = cr_2m_cuts
-
+    to_add = ['trig_met', 'at_least_one_tight_mu', 'two_muons', 'dimuon_charge', 'dimuon_mass', 'dpfcalo_cr']
+    to_remove = ['veto_muo']
+    regions['cr_2m_vbf'] = clean_lists( add_lists(to_add, common_cuts), to_remove)
+    
     # Single muon CR
-    cr_1m_cuts = ['trig_met','one_muon', 'at_least_one_tight_mu',  'veto_ele'] + common_cuts[1:] + ['dpfcalo_cr']
-    cr_1m_cuts.remove('veto_muo')
-    regions['cr_1m_vbf'] = cr_1m_cuts
+    to_add = ['trig_met', 'at_least_one_tight_mu', 'one_muon', 'dpfcalo_cr']
+    to_remove = ['veto_muo']
+    regions['cr_1m_vbf'] = clean_lists( add_lists(to_add, common_cuts), to_remove)
 
     # Dielectron CR
-    cr_2e_cuts = ['trig_ele','two_electrons', 'at_least_one_tight_el', 'dielectron_mass', 'veto_muo', 'dielectron_charge'] + common_cuts[2:] + ['dpfcalo_cr']
-    # cr_2e_cuts.remove('veto_ele')
-    regions['cr_2e_vbf'] = cr_2e_cuts
+    to_add = ['trig_ele', 'at_least_one_tight_el', 'two_electrons', 'dielectron_charge', 'dielectron_mass', 'dpfcalo_cr']
+    to_remove = ['veto_ele']
+    regions['cr_2e_vbf'] = clean_lists( add_lists(to_add, common_cuts), to_remove)
+    
+    # Single electron CR
+    to_add = ['trig_ele', 'at_least_one_tight_el', 'one_electron', 'met_el', 'no_el_in_hem', 'dpfcalo_cr']
+    to_remove = ['veto_ele']
+    regions['cr_1e_vbf'] = clean_lists( add_lists(to_add, common_cuts), to_remove)
+
+    # Photon CR
+    to_add = ['trig_photon', 'at_least_one_tight_photon', 'one_photon', 'photon_pt', 'dpfcalo_cr']
+    to_remove = ['veto_photon']
+    regions['cr_g_vbf'] = clean_lists( add_lists(to_add, common_cuts), to_remove)
 
     # Z CRs with CaloMETNoLep cut
     if cfg.RUN.CALOMET_CHECK:
         for r in ['cr_2e_vbf', 'cr_2m_vbf']:
-            regions[f'{r}_calocut'] = copy.deepcopy(regions[r])
-            regions[f'{r}_calocut'].append('calo_metptnolep')
-
-    # Single electron CR
-    cr_1e_cuts = ['trig_ele','one_electron', 'at_least_one_tight_el', 'veto_muo','met_el'] + common_cuts[1:] + ['dpfcalo_cr', 'no_el_in_hem']
-    # cr_1e_cuts.remove('veto_ele')
-    regions['cr_1e_vbf'] =  cr_1e_cuts
-
-    # Photon CR
-    cr_g_cuts = ['trig_photon', 'one_photon', 'at_least_one_tight_photon','photon_pt'] + common_cuts + ['dpfcalo_cr']
-    cr_g_cuts.remove('veto_photon')
-
-    regions['cr_g_vbf'] = cr_g_cuts
-
-    if cfg and cfg.RUN.SYNC:
-        regions['sync_sr_vbf_round1'] = [
-                                        'filt_met',
-                                        'trig_met',
-                                        'veto_photon',
-                                        'mindphijr',
-                                        'recoil',
-                                        'two_jets',
-                                        'leadak4_pt_eta',
-                                        'leadak4_id',
-                                        'trailak4_pt_eta',
-                                        'trailak4_id',
-                                        'hemisphere',
-                                        'mjj',
-                                        'dphijj',
-                                        'detajj',
-                                        ]
+            regions[f'{r}_calocut'] = add_lists(regions[r], 'calo_metptnolep')
 
     # VBF signal region where the hard-lepton vetoes are replace
     # with lepton veto weights
-    tmp = {}
-    for region in regions.keys():
-        if not region.startswith("sr_"):
-            continue
-        new_region = f"{region}_no_veto_all"
-        tmp[new_region] = copy.deepcopy(regions[region])
-        tmp[new_region].remove("veto_muo")
-        tmp[new_region].remove("veto_tau")
-        tmp[new_region].remove("veto_ele")
-        tmp[new_region].remove("mindphijr")
-        tmp[new_region].remove("recoil")
-        tmp[new_region].append("met_sr")
-        tmp[new_region].append("mindphijm")
-
-    regions.update(tmp)
+    to_add = ['met_sr', 'mindphijm']
+    to_remove = ['veto_muo', 'veto_tau', 'veto_ele', 'mindphijr', 'recoil']
+    regions.update(dict([(f"{region}_no_veto_all", add_lists(clean_lists(regions[region], to_remove),to_add)) for region in regions.keys() if region.startswith("sr_")]))
 
     # Region with high detajj cut
     if "sr_vbf_detajj_gt_3p0" in cfg.RUN.EXTRA_REGIONS:
-        regions['sr_vbf_detajj_gt_3p0'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
-        regions['sr_vbf_detajj_gt_3p0'].append('detajj_gt_3p0')
+        regions['sr_vbf_detajj_gt_3p0'] = add_lists(regions['sr_vbf_no_veto_all'], ['detajj_gt_3p0'])
 
     # VBF signal region without the dphijj cut
     if "sr_vbf_no_dphijj_cut" in cfg.RUN.EXTRA_REGIONS:
-        regions['sr_vbf_no_dphijj_cut'] = copy.deepcopy(regions['sr_vbf_no_veto_all'])
-        regions['sr_vbf_no_dphijj_cut'].remove('dphijj')
+        regions['sr_vbf_no_dphijj_cut'] = clean_lists(regions['sr_vbf_no_veto_all'], ['dphijj'])
 
-    if cfg and cfg.RUN.TRIGGER_STUDY:
+    if cfg.RUN.TRIGGER_STUDY:
         # Trigger studies
         # num = numerator, den = denominator
         # Single Mu region: Remove mjj cut, add SingleMu trigger, toggle MET trigger
-        tr_1m_num_cuts = copy.deepcopy(cr_1m_cuts)
-        tr_1m_num_cuts.remove('recoil')
-        tr_1m_num_cuts.append('trig_mu')
-        tr_1m_num_cuts.append('mu_pt_trig_safe')
+        for cut in ['two_central_jets', 'one_jet_forward_one_jet_central', 'two_hf_jets']:
+            regions[f"tr_1m_num_{cut}"] = add_lists(clean_lists(regions['cr_1m_vbf'], ['recoil']), ['trig_mu', 'mu_pt_trig_safe', cut])
+            regions[f"tr_1m_den_{cut}"] = clean_lists(regions[f"tr_1m_num_{cut}"], ['trig_met'])
 
-        regions['tr_1m_num_two_central_jets'] = tr_1m_num_cuts + ['two_central_jets']
-        regions['tr_1m_num_one_jet_forward_one_jet_central'] = tr_1m_num_cuts + ['one_jet_forward_one_jet_central']
-        regions['tr_1m_num_two_hf_jets'] = tr_1m_num_cuts + ['two_hf_jets']
+            regions[f"tr_2m_num_{cut}"] = add_lists(clean_lists(regions['cr_2m_vbf'], ['mjj']), ['trig_mu', 'mu_pt_trig_safe', cut])
+            regions[f"tr_2m_den_{cut}"] = clean_lists(regions[f"tr_2m_num_{cut}"], ['trig_met'])
 
-        tr_1m_den_cuts = copy.deepcopy(tr_1m_num_cuts)
-        tr_1m_den_cuts.remove('trig_met')
-
-        regions['tr_1m_den_two_central_jets'] = tr_1m_den_cuts + ['two_central_jets']
-        regions['tr_1m_den_one_jet_forward_one_jet_central'] = tr_1m_den_cuts + ['one_jet_forward_one_jet_central']
-        regions['tr_1m_den_two_hf_jets'] = tr_1m_den_cuts + ['two_hf_jets']
-
-        # Double Mu region: Remove mjj cut, toggle MET trigger
-        tr_2m_num_cuts = copy.deepcopy(cr_2m_cuts)
-        tr_2m_num_cuts.remove('mjj')
-        tr_2m_num_cuts.append('trig_mu')
-        tr_2m_num_cuts.append('mu_pt_trig_safe')
-
-        regions['tr_2m_num_two_central_jets'] = tr_2m_num_cuts + ['two_central_jets']
-        regions['tr_2m_num_one_jet_forward_one_jet_central'] = tr_2m_num_cuts + ['one_jet_forward_one_jet_central']
-        regions['tr_2m_num_two_hf_jets'] = tr_2m_num_cuts + ['two_hf_jets']
-
-        tr_2m_den_cuts = copy.deepcopy(tr_2m_num_cuts)
-        tr_2m_den_cuts.remove('trig_met')
-
-        regions['tr_2m_den_two_central_jets'] = tr_2m_den_cuts + ['two_central_jets']
-        regions['tr_2m_den_one_jet_forward_one_jet_central'] = tr_2m_den_cuts + ['one_jet_forward_one_jet_central']
-        regions['tr_2m_den_two_hf_jets'] = tr_2m_den_cuts + ['two_hf_jets']
-
-        # Photon region
-        tr_g_num_cuts = copy.deepcopy(cr_g_cuts)
-        tr_g_num_cuts.remove('recoil')
-        tr_g_num_cuts.remove('photon_pt')
-
-        tr_g_den_cuts = copy.deepcopy(tr_g_num_cuts)
-        tr_g_den_cuts.remove('trig_photon')
-
-        regions[f'tr_g_notrig_num'] = copy.deepcopy(tr_g_num_cuts)
-        regions[f'tr_g_notrig_den'] = copy.deepcopy(tr_g_den_cuts)
+        regions[f"tr_g_notrig_num"] = clean_lists(regions['cr_g_vbf'], ['recoil', 'photon_pt'])
+        regions[f"tr_g_notrig_den"] = clean_lists(regions[f"tr_g_notrig_num"], ['trig_photon'])
 
         for trgname in cfg.TRIGGERS.HT.GAMMAEFF:
-            regions[f'tr_g_{trgname}_num'] = tr_g_num_cuts + [trgname]
-            regions[f'tr_g_{trgname}_den'] = tr_g_den_cuts + [trgname]
+            regions[f'tr_g_{trgname}_num'] = add_lists(regions[f"tr_g_notrig_num"], [trgname])
+            regions[f'tr_g_{trgname}_den'] = add_lists(regions[f"tr_g_notrig_den"], [trgname])
 
-            regions[f'tr_g_{trgname}_photon_pt_trig_cut_num'] = tr_g_num_cuts + [trgname, 'photon_pt_trig']
-            regions[f'tr_g_{trgname}_photon_pt_trig_cut_den'] = tr_g_den_cuts + [trgname, 'photon_pt_trig']
+            regions[f'tr_g_{trgname}_photon_pt_trig_cut_num'] = add_lists(regions[f"tr_g_notrig_num"], [trgname, 'photon_pt_trig'])
+            regions[f'tr_g_{trgname}_photon_pt_trig_cut_den'] = add_lists(regions[f"tr_g_notrig_den"], [trgname, 'photon_pt_trig'])
 
     return regions
 
