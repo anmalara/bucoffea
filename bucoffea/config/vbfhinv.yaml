@@ -135,7 +135,7 @@ default:
         clean: false
         dr: 0.4
   mitigation:
-    hem: false
+    hem: true
 
   sf:
     qcd_ew_nlo_w: # QCD x EW k factor for QCD Z
