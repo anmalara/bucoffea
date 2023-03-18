@@ -155,10 +155,13 @@ def do_submit(args):
         print("WARNING: --no-prefetch is deprecated. Prefetching is disabled by default. Use --prefetch  if you want to turn it back on")
 
     if args.datasrc == 'das':
+        print("Loading files from das")
         dataset_files = files_from_das(regex=args.dataset)
     elif args.datasrc == 'ac':
+        print("Loading files from ac")
         dataset_files = files_from_ac(regex=args.dataset)
     else:
+        print("Loading files from eos")
         dataset_files = files_from_eos(regex=args.dataset)
 
     # Test mode: One file per data set
@@ -204,6 +207,8 @@ def do_submit(args):
     input_files = []
     if args.send_pack:
         gridpack_path = pjoin(subdir, 'gridpack.tgz')
+        if os.path.exists(gridpack_path) and args.force:
+            os.remove(gridpack_path)
         pack_repo(gridpack_path)
         input_files.append(gridpack_path)
 
