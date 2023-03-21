@@ -126,6 +126,8 @@ DYJetsToLL_M-50_HT-800to1200-MLM_2017:
   gen: 0.567
 DYJetsToLL_M-50_HT-800to1200-MLM_2018:
   gen: 0.5668
+DYJetsToLL_LHEFilterPtZ-0To50_MatchEWPDG20-amcatnloFXFX_2018:
+  gen: 99.06
 DYJetsToLL_LHEFilterPtZ-100To250_MatchEWPDG20-amcatnloFXFX_2017:
   gen: 99.06
 DYJetsToLL_LHEFilterPtZ-250To400_MatchEWPDG20-amcatnloFXFX_2017:
@@ -135,6 +137,16 @@ DYJetsToLL_LHEFilterPtZ-400To650_MatchEWPDG20-amcatnloFXFX_2017:
 DYJetsToLL_LHEFilterPtZ-50To100_MatchEWPDG20-amcatnloFXFX_2017:
   gen: 401.2
 DYJetsToLL_LHEFilterPtZ-650ToInf_MatchEWPDG20-amcatnloFXFX_2017:
+  gen: 0.04721
+DYJetsToLL_LHEFilterPtZ-100To250_MatchEWPDG20-amcatnloFXFX_2018:
+  gen: 99.06
+DYJetsToLL_LHEFilterPtZ-250To400_MatchEWPDG20-amcatnloFXFX_2018:
+  gen: 3.637
+DYJetsToLL_LHEFilterPtZ-400To650_MatchEWPDG20-amcatnloFXFX_2018:
+  gen: 0.5107
+DYJetsToLL_LHEFilterPtZ-50To100_MatchEWPDG20-amcatnloFXFX_2018:
+  gen: 401.2
+DYJetsToLL_LHEFilterPtZ-650ToInf_MatchEWPDG20-amcatnloFXFX_2018:
   gen: 0.04721
 DYJetsToLL_Pt-100To250_MatchEWPDG20-amcatnloFXFX_2017:
   gen: 94.2
@@ -305,6 +317,8 @@ GJets_DR-0p4_HT-400To600-MLM_2017:
 GJets_DR-0p4_HT-400To600-MLM_2018:
   gen: 126.2
 GJets_DR-0p4_HT-40To100-MLM_2016:
+  gen: 17520.0
+GJets_DR-0p4_HT-40To100-MLM_2018:
   gen: 17520.0
 GJets_DR-0p4_HT-600ToInf-MLM_2016:
   gen: 44.54

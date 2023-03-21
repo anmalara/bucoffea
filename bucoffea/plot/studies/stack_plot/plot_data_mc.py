@@ -27,6 +27,7 @@ def make_plot(args):
     for year in args.years:
         data = {
             'sr_vbf' : f'MET_{year}',
+            'sr_vbf_nodijetcut' : f'MET_{year}',
             'cr_1m_vbf' : f'MET_{year}',
             'cr_2m_vbf' : f'MET_{year}',
             'cr_1e_vbf' : f'EGamma_{year}',
@@ -36,6 +37,7 @@ def make_plot(args):
 
         mc = {
             'sr_vbf_no_veto_all' : re.compile(f'(ZNJetsToNuNu_M-50_LHEFilterPtZ-FXFX.*|EW.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
+            'sr_vbf_nodijetcut' : re.compile(f'(ZNJetsToNuNu_M-50_LHEFilterPtZ-FXFX.*|EW.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
             'cr_1m_vbf' : re.compile(f'(EWKW.*|EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt_FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
             'cr_1e_vbf' : re.compile(f'(EWKW.*|EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt_FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
             'cr_2m_vbf' : re.compile(f'(EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX).*{year}'),
@@ -84,6 +86,7 @@ def make_plot(args):
                         ulxs=not args.eoyxs,
                         fformats=args.fformats,
                         binwnorm=1 if distribution == 'mjj' else None,
+                        is_blind=args.blind,
                     )
                 except KeyError as e:
                     print(str(e))
@@ -97,6 +100,7 @@ def commandline():
     parser.add_argument('--distribution', type=str, default='.*', help='Regex specifying the distributions to plot.')
     parser.add_argument('--years', type=int, nargs='*', default=[2017,2018], help='Years to run on.')
     parser.add_argument('--one_fifth_unblind', action='store_true', help='1/5th unblinded data.')
+    parser.add_argument('--blind', action='store_true', help='blind data.')
     parser.add_argument('--fformats', nargs='*', default=['pdf'], help='Output file format for the plots, default is PDF only.')
     parser.add_argument('--jes', action='store_true', help='Plot JES+JER uncertainty bands.')
     parser.add_argument('--eoyxs', action='store_true', help='Use EOY XS for normalization, otherwise use UL XS.')
