@@ -10,21 +10,27 @@ import argparse
 def parse_commandline():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('processor', type=str, help='The processor to be run. (monojet or vbfhinv)')
+    parser.add_argument('processor', nargs='?', default='vbfhinv', type=str, help='The processor to be run. (monojet or vbfhinv)')
     args = parser.parse_args()
 
     return args
 
 def main():
     fileset = {
-        "VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_2018" : [
+        "VBF_H_2018" : [
             "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_13TeV_powheg_pythia8/VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8_2018/230303_180313/0000/tree_1.root"
         ],
-        "MET_ver1_2018D" : [
-            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/MET/MET_ver1_2018D/230306_160535/0000/tree_10.root"
+        "ggH_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/GluGlu_HToInvisible_M125_HiggspTgt190_TuneCP5_13TeV_powheg_pythia8/GluGlu_HToInvisible_M125_HiggspTgt190_pow_pythia8_2018/230303_181428/0000/tree_1.root"
         ],
-        "Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018" : [
-            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20_TuneCP5_13TeV-amcatnloFXFX-pythia8/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018/230303_183854/0000/tree_23.root"
+        "MET_2018D" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/MET/MET_ver1_2018D/230306_160535/0000/tree_2.root"
+        ],
+        "ZToNuNu_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20_TuneCP5_13TeV-amcatnloFXFX-pythia8/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018/230303_183854/0000/tree_1.root"
+        ],
+        "ZToLL_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/EWKZ2Jets_ZToLL_M-50_TuneCP5_withDipoleRecoil_13TeV-madgraph-pythia8/EWKZ2Jets_ZToLL_M-50_withDipoleRecoil-mg_2018/230303_182343/0000/tree_1.root",
         ]
     }
 
@@ -67,6 +73,7 @@ def main():
                                     treename='Runs' if args.processor=='sumw' else 'Events',
                                     processor_instance=processorInstance,
                                     executor=processor.futures_executor,
+                                    # executor=processor.iterative_executor,
                                     executor_args={'workers': 1, 'flatten': True},
                                     chunksize=50000,
                                     )
