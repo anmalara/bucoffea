@@ -241,7 +241,6 @@ default:
       jet_images: False
       tree_regions:
         - sr_vbf_no_veto_all
-        - sr_vbf
     kinematics:
       save: False
       events:
