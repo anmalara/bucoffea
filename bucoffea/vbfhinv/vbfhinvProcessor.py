@@ -673,7 +673,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     
                     # ParticleNet VBF score
                     if len(scores) > 0:
-                        output['tree_float16'][region]["particleNet_vbfScore"]   +=  processor.column_accumulator(np.float16(scores[:, 0]))
+                        output['tree_float16'][region]["particlenet_score"]   +=  processor.column_accumulator(np.float16(scores[:, 0]))
                     
                     # Dataset labels
                     if re.match("VBF_HToInvisible.*M125.*", df["dataset"]):
