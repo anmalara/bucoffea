@@ -436,16 +436,12 @@ def setup_candidates(df, cfg):
         ptraw=df['Jet_pt']*(1-df['Jet_rawFactor']),
         nconst=df['Jet_nConstituents'],
         hadflav= 0*df['Jet_pt'] if df['is_data'] else df['Jet_hadronFlavour'],
+        setaeta=df['Jet_hfsigmaEtaEta'],
+        sphiphi=df['Jet_hfsigmaPhiPhi'],
+        hfcentralstripsize=df['Jet_hfcentralEtaStripSize'],
+        hfadjacentstripsize=df['Jet_hfadjacentEtaStripsSize'],
+        btagdf=df['Jet_btagDeepFlavQG'],
     )
-
-    kwargs = {
-        'setaeta': df['Jet_hfsigmaEtaEta'],
-        'sphiphi': df['Jet_hfsigmaPhiPhi'],
-        'hfcentralstripsize': df['Jet_hfcentralEtaStripSize'],
-        'hfadjacentstripsize': df['Jet_hfadjacentEtaStripsSize'],
-        'btagdf': df['Jet_btagDeepFlavQG'],
-    }
-    ak4.add_attributes(**kwargs)
 
     if not df['is_data']:
         ak4.add_attributes(jercorr=df['Jet_corr_JER'])
