@@ -121,9 +121,8 @@ def files_from_ac(regex):
     return fileset
 
 def find_files(directory, regex):
-    fileset = {}
+    fileset = defaultdict(list)
     for path, _, files in os.walk(directory):
-
         files = list(filter(lambda x: x.endswith('.root'), files))
         if not len(files):
             continue
@@ -131,7 +130,7 @@ def find_files(directory, regex):
         if not re.match(regex, dataset):
             continue
         files = [pjoin(path,x) for x in files]
-        fileset[dataset] = files
+        fileset[dataset].extend(files)
     return fileset
 
 def eosls(path):
