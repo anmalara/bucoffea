@@ -35,7 +35,8 @@ Bin = hist.Bin
 recoil_bins_2016 = [ 250,  280,  310,  340,  370,  400,  430,  470,  510, 550,  590,  640,  690,  740,  790,  840,  900,  960, 1020, 1090, 1160, 1250, 1400]
 
 binnings = {
-    'mjj': Bin('mjj', r'$M_{jj} \ (GeV)$', [200., 400., 600., 900., 1200., 1500., 2000., 2750., 3500.]),
+    'mjj': Bin('mjj', r'$M_{jj} \ (GeV)$', [50, 100., 200., 400., 600., 900., 1200., 1500., 2000., 2750., 3500.]),
+    'particlenet_score': Bin('score', r'DNN score', 50, 0, 1),
     'cnn_score': Bin('score', r'CNN score', 25, 0, 1),
     'ak4_pt0': Bin('jetpt',r'Leading AK4 jet $p_{T}$ (GeV)',list(range(80,600,20)) + list(range(600,1000,20)) ),
     'ak4_pt1': Bin('jetpt',r'Trailing AK4 jet $p_{T}$ (GeV)',list(range(40,600,20)) + list(range(600,1000,20)) ),
@@ -88,6 +89,7 @@ ylims = {
     'dphitkpf' : (1e0,1e9),
     'met' : (1e-3,1e5),
     'ak4_mult' : (1e-1,1e8),
+    'particlenet_score' : (1e-1,1e4),
 }
 
 legend_labels = {
@@ -158,7 +160,7 @@ colors_IC = {
     '.*HF (N|n)oise.*' : (174, 126, 230),
 }
 
-def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distribution='mjj', plot_signal=True, mcscale=1, binwnorm=None, fformats=['pdf'], qcd_file=None, jes_file=None, ulxs=True):
+def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distribution='mjj', plot_signal=True, mcscale=1, binwnorm=None, fformats=['pdf'], qcd_file=None, jes_file=None, ulxs=True, is_blind=False):
     """
     Main plotter function to create a stack plot of data to background estimation (from MC).
     """
@@ -191,6 +193,8 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     # This sorting messes up in SR for some reason
     if data_region != 'sr_vbf':
         h.axis('dataset').sorting = 'integral'
+    if distribution== 'particlenet_score':
+        h = h.integrate('score_type', 'VBF-like')
 
     h_data = h.integrate('region', data_region)
     h_mc = h.integrate('region', mc_region)
@@ -238,7 +242,8 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     fig, ax, rax = fig_ratio()
     
     # Plot data
-    hist.plot1d(h_data[data], ax=ax, overflow=overflow, overlay='dataset', binwnorm=binwnorm, error_opts=data_err_opts)
+    if not ('sr_vbf' in data_region and is_blind):
+        hist.plot1d(h_data[data], ax=ax, overflow=overflow, overlay='dataset', binwnorm=binwnorm, error_opts=data_err_opts)
 
     xedges = h_data.integrate('dataset').axes()[0].edges(overflow=overflow)
 
