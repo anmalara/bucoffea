@@ -206,7 +206,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         ak4 = ak4[ak4.puid]
 
         # Recalculate MET pt and phi based on npv-corrections
-        met_pt_uncorr, met_phi_uncorr = met_pt, met_phi
         if cfg.MET.XYCORR:
             met_pt, met_phi = met_xy_correction(df, met_pt, met_phi)
 
@@ -243,7 +242,6 @@ class vbfhinvProcessor(processor.ProcessorABC):
         df['is_tight_photon'] = photons.mediumId & photons.barrel
 
         # Recoil
-        df['recoil_pt_uncorr'], df['recoil_phi_uncorr'] = recoil(met_pt_uncorr, met_phi_uncorr, electrons, muons, photons)
         df['recoil_pt'], df['recoil_phi'] = recoil(met_pt,met_phi, electrons, muons, photons)
         df['CaloRecoil_pt'], df['CaloRecoil_phi'] = recoil(df["CaloMET_pt"],df["CaloMET_phi"], electrons, muons, photons)
 
