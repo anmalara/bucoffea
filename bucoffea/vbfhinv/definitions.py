@@ -274,11 +274,12 @@ def vbfhinv_accumulator(cfg):
 
 def vbfhinv_regions(cfg):
     # 'inclusive'    # 'veto_b',
-    def remove_items(orig_list, to_remove):
-        return list(filter(lambda x: x not in to_remove, orig_list))
-    
-    def append_items(orig_list, to_add):
-        return list(orig_list+ to_add)
+    def remove_items(original_list, items_to_remove):
+        """Return a new list with items removed from the original list."""
+        return list(filter(lambda x: x not in items_to_remove, original_list))
+    def append_items(original_list, items_to_add):
+        """Return a new list with items appended to the original list."""
+        return list(original_list+ items_to_add)
     
     common_cuts = [
         'filt_met',
@@ -393,6 +394,7 @@ def vbfhinv_regions(cfg):
     # with lepton veto weights
     to_add = ['met_sr', 'mindphijm']
     to_remove = ['veto_muo', 'veto_tau', 'veto_ele', 'mindphijr', 'recoil']
+    # For each 'sr' region, created a new region with the same element, removing the cuts in to_remove adding those in to_add
     regions.update(dict([(f"{region}_no_veto_all", append_items(remove_items(regions[region], to_remove),to_add)) for region in regions.keys() if region.startswith("sr_")]))
 
     # Region with high detajj cut
