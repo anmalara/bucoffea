@@ -69,6 +69,9 @@ def get_hf_noise_estimate(acc, outtag, outrootfile, distribution, years=[2017, 2
 
     # Get data and MC yields in the QCD CR
     h = h.integrate('region', region_name)
+    if distribution== 'particlenet_score':
+        h = h.integrate('score_type', 'VBF-like')
+
     for year in years:
         # Regular expressions matching data and MC
         data = f'MET_{year}'

@@ -350,6 +350,8 @@ def vbfhinv_regions(cfg):
         if 'one_fifth_mask' in regions['cr_vbf_qcd']:
             regions['cr_vbf_qcd'].remove('one_fifth_mask')
         regions['cr_vbf_qcd'].append('fail_hf_cuts')
+        if cfg.RUN.REGION_WITHOUT_DIJET_CUTS:
+            regions['cr_vbf_qcd_nodijetcut'] = clean_lists(regions['cr_vbf_qcd'], ['mjj','detajj','dphijj'])
 
     # QCD CR to check with deltaphi(jet,MET) cut inverted
     # Will be used to compare the yields with the QCD template obtained from R&S
