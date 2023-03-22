@@ -3,9 +3,12 @@ external
 __pycache__
 *.egg-info
 *.coffea
+*.pkl
+*.root
 *.pdf
 *.png
 *cutflow*.txt
 monitor_log.txt
 submission/
 pkl/
+INFO.txt
