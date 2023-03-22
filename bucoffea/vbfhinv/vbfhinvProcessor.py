@@ -1080,6 +1080,15 @@ class vbfhinvProcessor(processor.ProcessorABC):
                                     recoil=df["recoil_pt"][mask],
                                     weight=rweight[mask] * w_imp
                                 )
+                
+                if len(scores) > 0:
+                    output["particlenet_score"].fill(
+                        dataset=data_driven_qcd_dataset(dataset),
+                        region=region,
+                        score_type="VBF-like",
+                        score=scores[:,0],
+                        weight=rweight[mask] * w_imp
+                    )
 
             # Theory uncertainties on V+jets processes
             if cfg.RUN.UNCERTAINTIES.THEORY:
