@@ -348,8 +348,12 @@ def vbfhinv_regions(cfg):
         except:
             pass
         regions['cr_vbf_qcd'].append('fail_hf_cuts')
+        
         if cfg.RUN.REGION_WITHOUT_DIJET_CUTS:
-            regions['cr_vbf_qcd_nodijetcut'] = clean_lists(regions['cr_vbf_qcd'], ['mjj','detajj','dphijj'])
+            regions['cr_vbf_qcd_nodijetcut'] = copy.deepcopy(regions["cr_vbf_qcd"])
+            regions['cr_vbf_qcd_nodijetcut'].remove("mjj")
+            regions['cr_vbf_qcd_nodijetcut'].remove("detajj")
+            regions['cr_vbf_qcd_nodijetcut'].remove("dphijj")
 
     # QCD CR to check with deltaphi(jet,MET) cut inverted
     # Will be used to compare the yields with the QCD template obtained from R&S
