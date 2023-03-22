@@ -1,3 +1,3 @@
-EGamma_ver2_2018D https://cernbox.cern.ch/files/spaces/eos/user/a/aakpinar/www/public/PFNANO_V9_17Feb23_PostNanoTools
-VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8_2018 https://cernbox.cern.ch/files/spaces/eos/user/a/aakpinar/www/public/PFNANO_V9_17Feb23_PostNanoTools
-Z1JetsToNuNu_M-50_LHEFilterPtZ-250To400_MatchEWPDG20-amcatnloFXFX_2018 https://cernbox.cern.ch/files/spaces/eos/user/a/aakpinar/www/public/PFNANO_V9_17Feb23_PostNanoTools
+EGamma_ver2_2018D https://aakpinar.web.cern.ch/aakpinar/public/PFNANO_V9_17Feb23_PostNanoTools
+VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8_2018 https://aakpinar.web.cern.ch/aakpinar/public/PFNANO_V9_17Feb23_PostNanoTools
+Z1JetsToNuNu_M-50_LHEFilterPtZ-250To400_MatchEWPDG20-amcatnloFXFX_2018 https://aakpinar.web.cern.ch/aakpinar/public/PFNANO_V9_17Feb23_PostNanoTools
