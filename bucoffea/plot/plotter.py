@@ -89,7 +89,7 @@ ylims = {
     'dphitkpf' : (1e0,1e9),
     'met' : (1e-3,1e5),
     'ak4_mult' : (1e-1,1e8),
-    'particlenet_score' : (1e-1,1e4),
+    'particlenet_score' : (1e-1,1e5),
 }
 
 legend_labels = {
@@ -338,14 +338,16 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     r[np.isnan(r) | np.isinf(r)] = 0.
     rerr[np.isnan(rerr) | np.isinf(rerr)] = 0.
 
-    hep.histplot(
-        r,
-        xedges,
-        yerr=rerr,
-        ax=rax,
-        histtype='errorbar',
-        **data_err_opts
-    )
+    # Actually do the plot if we're not blinded (only for SR)
+    if not ('sr_vbf' in data_region and is_blind):
+        hep.histplot(
+            r,
+            xedges,
+            yerr=rerr,
+            ax=rax,
+            histtype='errorbar',
+            **data_err_opts
+        )
 
     xlabels = {
         'mjj': r'$M_{jj} \ (GeV)$',
