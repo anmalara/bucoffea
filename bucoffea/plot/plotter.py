@@ -76,8 +76,8 @@ binnings = {
 }
 
 ylims = {
-    'ak4_eta0' : (1e-3,1e8),
-    'ak4_eta1' : (1e-3,1e8),
+    'ak4_eta0' : (1e-3,1e5),
+    'ak4_eta1' : (1e-3,1e5),
     'ak4_nef0' : (1e0,1e8),
     'ak4_nef1' : (1e0,1e8),
     'ak4_nhf0' : (1e0,1e8),

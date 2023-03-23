@@ -62,20 +62,3 @@ binnings = {
     'extra_ak4_mult' : Bin("multiplicity", r"Additional AK4 Jet Multiplicity", 10, -0.5, 9.5),
     'recoil' : Bin('recoil','Recoil (GeV)', recoil_bins_2016),
 }
-
-ylims = {
-    'ak4_eta0' : (1e-3,1e8),
-    'ak4_eta1' : (1e-3,1e8),
-    'ak4_nef0' : (1e0,1e8),
-    'ak4_nef1' : (1e0,1e8),
-    'ak4_nhf0' : (1e0,1e8),
-    'ak4_nhf1' : (1e0,1e8),
-    'ak4_chf0' : (1e0,1e8),
-    'ak4_chf1' : (1e0,1e8),
-    'vecb' : (1e-1,1e9),
-    'vecdphi' : (1e0,1e9),
-    'dphitkpf' : (1e0,1e9),
-    'met' : (1e-3,1e5),
-    'ak4_mult' : (1e-1,1e8),
-    'particlenet_score' : (1e-1,1e8),
-}
