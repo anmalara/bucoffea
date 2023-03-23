@@ -9,12 +9,12 @@ import numpy as np
 from datetime import datetime
 
 from matplotlib import pyplot as plt
-from bucoffea.plot.util import merge_extensions, merge_datasets, scale_xs_lumi, dump_info
+from bucoffea.plot.util import merge_extensions, merge_datasets, scale_xs_lumi, dump_info, create_legend, set_cms_style
 from coffea import hist
 from klepto.archives import dir_archive
 from pprint import pprint
 from distributions import distributions
-from bucoffea.plot.plotter import binnings, legend_labels
+from bucoffea.plot.plotter import binnings, legend_labels, colors
 
 pjoin = os.path.join
 
@@ -25,23 +25,25 @@ def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2
     acc.load(distribution)
     h = acc[distribution]
 
-    h = merge_extensions(h, acc, reweight_pu=False)
-    scale_xs_lumi(h)
-    h = merge_datasets(h)
-
+    # Set up overflow bin for mjj
     overflow = 'none'
     if distribution == 'mjj':
         overflow = 'over'
 
-    # Rebin if neccessary
+    # Pre-processing of the histogram, merging datasets, scaling w.r.t. XS and lumi
+    h = merge_extensions(h, acc, reweight_pu=False)
+    scale_xs_lumi(h)
+    h = merge_datasets(h)
+
+    # Rebin if necessary
+        # Specifically rebin dphitkpf distribution: Merge the bins in the tails
+    # Annoying approach but it works (due to float precision problems)
     if distribution in binnings.keys():
         new_ax = binnings[distribution]
         h = h.rebin(new_ax.name, new_ax)
-    
     elif distribution == 'dphitkpf':
         new_bins = [ibin.lo for ibin in h.identifiers('dphi') if ibin.lo < 2] + [3.5]
-        
-        new_ax = hist.Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
+        new_ax = Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
         h = h.rebin('dphi', new_ax)
 
     # Get data and MC yields in the QCD CR
@@ -63,6 +65,7 @@ def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2
         }
 
         fig, ax = plt.subplots()
+
         hist.plot1d(
             h[data], 
             overlay='dataset', 
@@ -81,34 +84,9 @@ def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2
 
         ax.set_yscale('log')
         ax.set_ylim(1e-2,1e6)
-        ax.yaxis.set_ticks_position('both')
 
-        handles, labels = ax.get_legend_handles_labels()
-
-        for handle, label in zip(handles, labels):
-            for regex, newlabel in legend_labels.items():
-                if re.match(regex, label):
-                    handle.set_label(newlabel)
-                    if newlabel != 'Data':
-                        handle.set_linestyle('-')
-                        handle.set_edgecolor('k')
-                    continue
-
-        ax.legend(title='QCD CR', ncol=2, handles=handles)
-
-        ax.text(0.,1.,r'QCD CR $\times$ $CR \rightarrow SR$ TF',
-            fontsize=14,
-            ha='left',
-            va='bottom',
-            transform=ax.transAxes
-        )
-
-        ax.text(1.,1.,year,
-            fontsize=14,
-            ha='right',
-            va='bottom',
-            transform=ax.transAxes
-        )
+        create_legend(ax, legend_title='QCD CR', legend_labels=legend_labels, colors=colors)
+        set_cms_style(ax, year=year, extratext=r'QCD CR $\times$ $CR \rightarrow SR$ TF', size = 0.75)
 
         outpath = pjoin(outdir, f'{region_name}_{distribution}_{year}.pdf')
         fig.savefig(outpath)
@@ -121,26 +99,12 @@ def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2
         h_mc = h.integrate('dataset', mc)        
         h_mc.scale(-1)
         h_qcd.add(h_mc)
-
         hist.plot1d(h_qcd, ax=ax, overflow=overflow)
         ax.set_yscale('log')
         ax.set_ylim(1e-2,1e6)
         ax.get_legend().remove()
+        set_cms_style(ax, year=year, extratext='QCD Estimate in SR')
         
-        ax.text(0.,1.,'QCD Estimate in SR',
-            fontsize=14,
-            ha='left',
-            va='bottom',
-            transform=ax.transAxes
-        )
-
-        ax.text(1.,1.,year,
-            fontsize=14,
-            ha='right',
-            va='bottom',
-            transform=ax.transAxes
-        )
-
         outpath = pjoin(outdir, f'qcd_estimation_{distribution}_{year}.pdf')
         fig.savefig(outpath)
         plt.close(fig)

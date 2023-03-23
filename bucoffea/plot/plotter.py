@@ -1,21 +1,12 @@
 #!/usr/bin/env python
-import argparse
-import os
-import re
-import sys
-import uproot
+import os, re, uproot
 import numpy as np
 import mplhep as hep
 
-from collections import OrderedDict
 from matplotlib import pyplot as plt
-from matplotlib.ticker import MultipleLocator
 from coffea import hist
 from coffea.hist import poisson_interval
-from bucoffea.plot.util import merge_datasets, merge_extensions, scale_xs_lumi, fig_ratio, lumi
-from bucoffea.helpers.paths import bucoffea_path
-from klepto.archives import dir_archive
-from pprint import pprint
+from bucoffea.plot.util import merge_datasets, merge_extensions, scale_xs_lumi, fig_ratio, create_legend, calculate_data_mc_ratio, set_cms_style, ratio_cosmetics
 
 pjoin = os.path.join
 
@@ -120,20 +111,24 @@ ylims = {
     'particlenet_score' : (1e-1,1e5),
 }
 
+gjet = '$\\gamma$+jets'
+Zll  = 'Z$\\rightarrow\\ell\\ell$'
+Znn  = 'Z$\\rightarrow\\nu\\nu$'
+Wln  = 'W$\\rightarrow\\ell\\nu$'
 legend_labels = {
-    'GJets_(DR-0p4).*' : "QCD $\\gamma$+jets",
-    '(VBFGamma|GJets_SM.*EWK).*' : "EWK $\\gamma$+jets",
-    'DY.*' : "QCD Z$\\rightarrow\\ell\\ell$",
-    'EWKZ.*ZToLL.*' : "EWK Z$\\rightarrow\\ell\\ell$",
-    'WN*J.*LNu.*' : "QCD W$\\rightarrow\\ell\\nu$",
-    'EWKW.*LNu.*' : "EWK W$\\rightarrow\\ell\\nu$",
-    'ZN*JetsToNuNu.*.*' : "QCD Z$\\rightarrow\\nu\\nu$",
-    'EWKZ.*ZToNuNu.*' : "EWK Z$\\rightarrow\\nu\\nu$",
-    'QCD.*' : "QCD Estimation",
-    'Top.*' : "Top quark",
-    'Diboson.*' : "WW/WZ/ZZ",
-    'MET|Single(Electron|Photon|Muon)|EGamma.*' : "Data",
-    'VBF_HToInv.*' : "VBF H(inv)",
+    'GJets_(DR-0p4).*':                          f'QCD {gjet}',
+    '(VBFGamma|GJets_SM.*EWK).*':                f'EWK {gjet}',
+    'DY.*':                                      f'QCD {Zll}',
+    'EWKZ.*ZToLL.*':                             f'EWK {Zll}',
+    'WN*J.*LNu.*':                               f'QCD {Wln}',
+    'EWKW.*LNu.*':                               f'EWK {Wln}',
+    'ZN*JetsToNuNu.*.*':                         f'QCD {Znn}',
+    'EWKZ.*ZToNuNu.*':                           f'EWK {Znn}',
+    'QCD.*':                                     "QCD Estimation",
+    'Top.*':                                     "Top quark",
+    'Diboson.*':                                 "WW/WZ/ZZ",
+    'MET|Single(Electron|Photon|Muon)|EGamma.*': "Data",
+    'VBF_HToInv.*':                              "VBF H(inv)",
 }
 
 legend_labels_IC = {
@@ -151,7 +146,7 @@ legend_labels_IC = {
 }
 
 legend_titles = {
-    'sr_vbf' : 'VBF Signal Region',
+    'sr_vbf'    : 'VBF Signal Region',
     'cr_1m_vbf' : r'VBF $1\mu$ Region',
     'cr_2m_vbf' : r'VBF $2\mu$ Region',
     'cr_1e_vbf' : r'VBF $1e$ Region',
@@ -205,16 +200,14 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     scale_xs_lumi(h, ulxs=ulxs, mcscale=mcscale)
     h = merge_datasets(h)
 
-    # Rebin the histogram if necessary
+    # Rebin if necessary
+        # Specifically rebin dphitkpf distribution: Merge the bins in the tails
+    # Annoying approach but it works (due to float precision problems)
     if distribution in binnings.keys():
         new_ax = binnings[distribution]
         h = h.rebin(new_ax.name, new_ax)
-
-    # Specifically rebin dphitkpf distribution: Merge the bins in the tails
-    # Annoying approach but it works (due to float precision problems)
     elif distribution == 'dphitkpf':
         new_bins = [ibin.lo for ibin in h.identifiers('dphi') if ibin.lo < 2] + [3.5]
-        
         new_ax = Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
         h = h.rebin('dphi', new_ax)
 
@@ -226,20 +219,6 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
 
     h_data = h.integrate('region', data_region)
     h_mc = h.integrate('region', mc_region)
-    
-    # Get the QCD template (HF-noise estimation), only to be used in the signal region
-    if 'sr_vbf' in data_region:
-        # If a path to HF-noise estimate file has been given, use it!
-        # Otherwise, take the one from the relevant output directory
-        if qcd_file:
-            qcdfilepath = qcd_file
-        else:
-            qcdfilepath = pjoin(outtag,'hf_estimate','vbfhinv_hf_estimate.root')
-        
-        # Make sure that the HF-noise estimate ROOT file points to a valid path
-        assert os.path.exists(qcdfilepath), f"HF-noise file cannot be found: {qcdfilepath}"
-
-        h_qcd = uproot.open(qcdfilepath)[f'hf_estimate_{distribution}_{year}']
 
     data_err_opts = {
         'linestyle':'none',
@@ -258,12 +237,18 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     }
 
     for dataset in datasets:
-        sumw = h_mc.integrate('dataset', dataset).values(overflow=overflow)[()]
-
+        sumw = h_mc.integrate('dataset', dataset).values(overflow=overflow)[()]        
         plot_info['sumw'].append(sumw)
 
-    # Add the HF-noise contribution (for signal region only)
-    if data_region == 'sr_vbf':
+    # Get the QCD template (HF-noise estimation), only to be used in the signal region
+    if 'sr_vbf' in data_region:
+        qcdfilepath = pjoin(outtag,'hf_estimate','vbfhinv_hf_estimate.root')
+        if qcd_file:
+            qcdfilepath = qcd_file
+        assert os.path.exists(qcdfilepath), f"HF-noise file cannot be found: {qcdfilepath}"
+        h_qcd = uproot.open(qcdfilepath)[f'hf_estimate_{distribution}_{year}']
+        # Add the HF-noise contribution (for signal region only)
+        
         plot_info['label'].insert(6, 'HF Noise Estimate')
         plot_info['sumw'].insert(6, h_qcd.values * mcscale)
 
@@ -325,29 +310,8 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     if distribution == 'mjj':
         ax.set_xlim(left=0.)
 
-    ax.yaxis.set_ticks_position('both')
-
-    # Update legend labels and plot styles
-    handles, labels = ax.get_legend_handles_labels()
-    for handle, label in zip(handles, labels):
-        for datasetregex, new_label in legend_labels.items():
-            col = None
-            if re.match(datasetregex, label):
-                handle.set_label(new_label)
-            for k, v in colors.items():
-                if re.match(k, label):
-                    col = v
-                    break
-
-            if col:
-                handle.set_color(col)
-                handle.set_linestyle('-')
-                handle.set_edgecolor('k')
-
-    try:
-        ax.legend(title=legend_titles[data_region], handles=handles, ncol=2)
-    except KeyError:
-        ax.legend(handles=handles, ncol=2)
+    create_legend(ax, legend_titles.get(data_region, None), legend_labels, colors)
+    set_cms_style(ax, year=year, mcscale=mcscale)
 
     # Plot ratio
     h_data = h_data.integrate('dataset', data)
@@ -357,14 +321,10 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     sumw_mc = h_mc.values(overflow=overflow)[()]
     
     # Add the HF-noise contribution to the background expectation
-    if data_region == 'sr_vbf':
+    if 'sr_vbf' in data_region:
         sumw_mc = sumw_mc + h_qcd.values * mcscale
 
-    r = sumw_data / sumw_mc
-    rerr = np.abs(poisson_interval(r, sumw2_data / sumw_mc**2) - r)
-
-    r[np.isnan(r) | np.isinf(r)] = 0.
-    rerr[np.isnan(rerr) | np.isinf(rerr)] = 0.
+    r, rerr = calculate_data_mc_ratio(sumw_data, sumw2_data, sumw_mc)
 
     # Actually do the plot if we're not blinded (only for SR)
     if not ('sr_vbf' in data_region and is_blind):
@@ -376,15 +336,6 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
             histtype='errorbar',
             **data_err_opts
         )
-    
-    rax.set_ylabel('Data / MC')
-    rax.set_ylim(0.5,1.5)
-    loc1 = MultipleLocator(0.2)
-    loc2 = MultipleLocator(0.1)
-    rax.yaxis.set_major_locator(loc1)
-    rax.yaxis.set_minor_locator(loc2)
-
-    rax.yaxis.set_ticks_position('both')
 
     sumw_denom, sumw2_denom = h_mc.values(overflow=overflow, sumw2=True)[()]
 
@@ -426,23 +377,7 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
 
         rax.legend()
 
-    rax.grid(axis='y',which='both',linestyle='--')
-
-    rax.axhline(1., xmin=0, xmax=1, color=(0,0,0,0.4), ls='--')
-
-    fig.text(0., 1., '$\\bf{CMS}$ internal',
-                fontsize=14,
-                horizontalalignment='left',
-                verticalalignment='bottom',
-                transform=ax.transAxes
-               )
-
-    fig.text(1., 1., f'VBF, {lumi(year, mcscale):.1f} fb$^{{-1}}$ ({year})',
-                fontsize=14,
-                horizontalalignment='right',
-                verticalalignment='bottom',
-                transform=ax.transAxes
-               )
+    ratio_cosmetics(ax=rax)
 
     outdir = pjoin(outtag,data_region)
     os.system('mkdir -p '+outdir)
