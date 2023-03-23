@@ -427,6 +427,12 @@ def load_xs(ulxs=True):
     xs.update(tmp)
     return xs
 
+def energy(year):
+    year = str(year)
+    if re.search(r'Run2|(2016|2017|2018)', year): return '(13 TeV)'
+    if re.search(r'Run3|(2022|2023|2024)', year): return '(13.6 TeV)'
+    raise ValueError(f'Unexpected year for energy: {year}')
+
 def lumi(year, mcscale=1):
     """Golden JSON luminosity per for given year
 
@@ -435,12 +441,11 @@ def lumi(year, mcscale=1):
     :return: Golden JSON luminosity for that year in pb (!)
     :rtype: float
     """
-    if year==2018:
-        return 59.7 * mcscale
-    if year==2017:
-        return 41.5 * mcscale
-    if year==2016:
-        return 35.9 * mcscale
+    if year=='Run2': lumi = 138
+    elif year==2016: lumi = 35.9
+    elif year==2017: lumi = 41.5
+    elif year==2018: lumi = 59.7
+    return lumi*mcscale
 
 def scale_xs_lumi(histogram, mcscale=1, scale_lumi=True, ulxs=True):
     """MC normalization so that it's ready to compare to data
@@ -480,6 +485,8 @@ def fig_ratio():
     :rtype: tuple(Figure, axes, axes)
     """
     fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
+    ax_cosmetics(ax)
+    ax_cosmetics(rax)
     return fig, ax, rax
 
 def fig_double_ratio():
@@ -555,3 +562,72 @@ def dump_info(args,outdir):
         cli = vars(args)
         for arg, val in cli.items():
             f.write(f'{arg}: {val}\n')
+
+
+def create_legend(ax, legend_title, legend_labels=None, colors=None):
+    # Update legend labels and plot styles
+    handles, labels = ax.get_legend_handles_labels()
+    for handle, label in zip(handles, labels):
+        if legend_labels is not None:
+            for datasetregex, new_label in legend_labels.items():
+                if re.match(datasetregex, label):
+                    handle.set_label(new_label)
+        if colors is not None:
+            for k, col in colors.items():
+                if re.match(k, label):
+                    handle.set_color(col)
+                    handle.set_linestyle('-')
+                    handle.set_edgecolor('k')
+                    break
+    ax.legend(title=legend_title, handles=handles, ncol=2)
+
+
+def calculate_data_mc_ratio(sumw_data, sumw2_data, sumw_mc):
+    from coffea.hist import poisson_interval
+    r = sumw_data / sumw_mc
+    rerr = np.abs(poisson_interval(r, sumw2_data / sumw_mc**2) - r)
+    r[np.isnan(r) | np.isinf(r)] = 0.
+    rerr[np.isnan(rerr) | np.isinf(rerr)] = 0.
+    return (r, rerr)
+
+
+def ax_cosmetics(ax):
+    ax.tick_params(axis='both', direction='in', which='both')
+    ax.xaxis.set_ticks_position('both')
+    ax.yaxis.set_ticks_position('both')
+
+def ratio_cosmetics(ax, yaxis='Data / MC'):
+    from matplotlib.ticker import MultipleLocator
+    ax.set_ylabel(yaxis)
+    ax.set_ylim(0.5,1.5)
+    ax.yaxis.set_major_locator(MultipleLocator(0.2))
+    ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+    ax.grid(axis='y',which='both',linestyle='--')
+    ax.axhline(1., xmin=0, xmax=1, color=(0,0,0,0.4), ls='--')
+
+
+def set_cms_text(ax, text='$\\bf{CMS}$ internal'):
+    ax.text(0., 1., text,
+            fontsize=14,
+            horizontalalignment='left',
+            verticalalignment='bottom',
+            transform=ax.transAxes
+            )
+
+def set_lumi_text(ax, year=None, mcscale=1, extratext='VBF', size=None):
+    if year is None: year ='Run2'
+    text = f'{str(lumi(year, mcscale))} fb$^{{-1}}$ {energy(year)}'
+    if extratext!='' and extratext is not None:
+        text = extratext+', '+text
+    ax.text(1., 1., text,
+            fontsize=14,
+            horizontalalignment='right',
+            verticalalignment='bottom',
+            transform=ax.transAxes,
+            size=None,
+            )
+
+def set_cms_style(ax, text='$\\bf{CMS}$ internal', year=None, mcscale=1, extratext='VBF', size=None):
+    ax_cosmetics(ax)
+    set_cms_text(ax, text=text)
+    set_lumi_text(ax, year=year, mcscale=mcscale, extratext=extratext, size=size)
