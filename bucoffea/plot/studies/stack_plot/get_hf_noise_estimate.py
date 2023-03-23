@@ -42,6 +42,8 @@ def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2
     h = merge_datasets(h)
 
     overflow = 'none'
+    if distribution == 'mjj':
+        overflow = 'over'
 
     # Rebin if neccessary
     if distribution in binnings.keys():
