@@ -358,6 +358,7 @@ def vbfhinv_regions(cfg):
         if 'one_fifth_mask' in regions['cr_vbf_qcd']:
             regions['cr_vbf_qcd'].remove('one_fifth_mask')
         regions['cr_vbf_qcd'].append('fail_hf_cuts')
+        
         if cfg.RUN.REGION_WITHOUT_DIJET_CUTS:
             regions['cr_vbf_qcd_nodijetcut'] = remove_items(regions['cr_vbf_qcd'], ['mjj','detajj','dphijj'])
 
