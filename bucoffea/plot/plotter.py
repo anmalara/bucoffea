@@ -31,48 +31,64 @@ params = {'legend.fontsize': 'small',
 pylab.rcParams.update(params)
 
 Bin = hist.Bin
+high_pt_bins = list(range(600,1000,20))
 
-recoil_bins_2016 = [ 250,  280,  310,  340,  370,  400,  430,  470,  510, 550,  590,  640,  690,  740,  790,  840,  900,  960, 1020, 1090, 1160, 1250, 1400]
+bins = {
+    'mjj':           [[50, 100., 200., 400., 600., 900., 1200., 1500., 2000., 2750., 3500.]],
+    'recoil':        [[250, 280, 310, 340, 370, 400, 430, 470, 510, 550, 590, 640, 690, 740, 790, 840, 900, 960, 1020, 1090, 1160, 1250, 1400]],
+    'phi':           [50, -np.pi, np.pi],
+    'eta':           [50, -5, 5],
+    'frac':          [50, 0, 1],
+    'mt':            [list(range(0,1000,20))],
+    'met':           [list(range(0,500,50)) + list(range(500,1000,100)) + list(range(1000,2000,250))],
+    'lep_pt':        [list(range(0,600,20))],
+    'photon_pt':     [list(range(200,600,20)) + high_pt_bins],
+    'jet_pt0':       [list(range(80,600,20)) + high_pt_bins],
+    'jet_pt1':       [list(range(40,600,20)) + high_pt_bins],
+    'dilepton_mass': [30,60,120],
+    'dphi':          [50, 0, 3.5],
+    'mult':          [10, -0.5, 9.5],
+}
 
 binnings = {
-    'mjj': Bin('mjj', r'$M_{jj} \ (GeV)$', [50, 100., 200., 400., 600., 900., 1200., 1500., 2000., 2750., 3500.]),
-    'particlenet_score': Bin('score', r'DNN score', 50, 0, 1),
-    'cnn_score': Bin('score', r'CNN score', 25, 0, 1),
-    'ak4_pt0': Bin('jetpt',r'Leading AK4 jet $p_{T}$ (GeV)',list(range(80,600,20)) + list(range(600,1000,20)) ),
-    'ak4_pt1': Bin('jetpt',r'Trailing AK4 jet $p_{T}$ (GeV)',list(range(40,600,20)) + list(range(600,1000,20)) ),
-    'ak4_phi0' : Bin("jetphi", r"Leading AK4 jet $\phi$", 50,-np.pi, np.pi),
-    'ak4_phi1' : Bin("jetphi", r"Trailing AK4 jet $\phi$", 50,-np.pi, np.pi),
-    'ak4_nef0' : Bin('frac', 'Leading Jet Neutral EM Frac', 50, 0, 1),
-    'ak4_nef1' : Bin('frac', 'Trailing Jet Neutral EM Frac', 50, 0, 1),
-    'ak4_nhf0' : Bin('frac', 'Leading Jet Neutral Hadronic Frac', 50, 0, 1),
-    'ak4_nhf1' : Bin('frac', 'Trailing Jet Neutral Hadronic Frac', 50, 0, 1),
-    'ak4_chf0' : Bin('frac', 'Leading Jet Charged Hadronic Frac', 50, 0, 1),
-    'ak4_chf1' : Bin('frac', 'Trailing Jet Charged Hadronic Frac', 50, 0, 1),
-    'ak4_central_eta' : Bin("jeteta", r"More Central Jet $\eta$", 50, -5, 5),
-    'ak4_forward_eta' : Bin("jeteta", r"More Forward Jet $\eta$", 50, -5, 5),
-    'extra_ak4_mult' : Bin("multiplicity", r"Additional AK4 Jet Multiplicity", 10, -0.5, 9.5),
-    # 'dphitkpf' : Bin('dphi', r'$\Delta\phi_{TK,PF}$', 50, 0, 3.5),
-    'met' : Bin('met',r'$p_{T}^{miss}$ (GeV)',list(range(0,500,50)) + list(range(500,1000,100)) + list(range(1000,2000,250))),
-    'met_phi' : Bin("phi", r"$\phi_{MET}$", 50, -np.pi, np.pi),
-    'calomet_pt' : Bin('met',r'$p_{T,CALO}^{miss,no-\ell}$ (GeV)',list(range(0,500,50)) + list(range(500,1000,100)) + list(range(1000,2000,250))),
-    'calomet_phi' : Bin('phi',r'$\phi_{MET}^{CALO}$', 50, -np.pi, np.pi),
-    'ak4_mult' : Bin("multiplicity", r"AK4 multiplicity", 10, -0.5, 9.5),
-    'electron_pt' : hist.Bin('pt',r'Electron $p_{T}$ (GeV)',list(range(0,600,20))),
-    'electron_pt0' : hist.Bin('pt',r'Leading electron $p_{T}$ (GeV)',list(range(0,600,20))),
-    'electron_pt1' : hist.Bin('pt',r'Trailing electron $p_{T}$ (GeV)',list(range(0,600,20))),
-    'electron_mt' : hist.Bin('mt',r'Electron $M_{T}$ (GeV)',list(range(0,800,20))),
-    'muon_pt' : hist.Bin('pt',r'Muon $p_{T}$ (GeV)',list(range(0,600,20))),
-    'muon_pt0' : hist.Bin('pt',r'Leading muon $p_{T}$ (GeV)',list(range(0,600,20))),
-    'muon_pt1' : hist.Bin('pt',r'Trailing muon $p_{T}$ (GeV)',list(range(0,600,20))),
-    'muon_mt' : hist.Bin('mt',r'Muon $M_{T}$ (GeV)',list(range(0,800,20))),
-    'photon_pt0' : hist.Bin('pt',r'Photon $p_{T}$ (GeV)',list(range(200,600,20)) + list(range(600,1000,20)) ),
-    'recoil' : hist.Bin('recoil','Recoil (GeV)', recoil_bins_2016),
-    'dphijr' : Bin("dphi", r"min $\Delta\phi(j,recoil)$", 50, 0, 3.5),
-    'dimuon_mass' : hist.Bin('dilepton_mass',r'M($\mu^{+}\mu^{-}$)',30,60,120),
-    'dielectron_mass' : hist.Bin('dilepton_mass',r'M($e^{+}e^{-}$)',30,60,120),
-    'mjj_transformed' : hist.Bin('transformed', r'Rescaled $M_{jj}$', 50, -5, 5),
-    'detajj_transformed' : hist.Bin('transformed', r'Rescaled $\Delta\eta_{jj}$', 50, -5, 5),
-    'dphijj_transformed' : hist.Bin('transformed', r'Rescaled $\Delta\phi_{jj}$', 50, -5, 5),
+    'mjj':                Bin('mjj',             r'$M_{jj} \ (GeV)$',                      *bins['mjj']),
+    'particlenet_score':  Bin('score',           r'DNN score',                             *bins['frac']),
+    'cnn_score':          Bin('score',           r'CNN score',                             *bins['frac']),
+    'ak4_pt0':            Bin('jetpt',           r'Leading AK4 jet $p_{T}$ (GeV)',         *bins['jet_pt0']),
+    'ak4_pt1':            Bin('jetpt',           r'Trailing AK4 jet $p_{T}$ (GeV)',        *bins['jet_pt1']),
+    'ak4_phi0':           Bin('jetphi',          r'Leading AK4 jet $\phi$',                *bins['phi']),
+    'ak4_phi1':           Bin('jetphi',          r'Trailing AK4 jet $\phi$',               *bins['phi']),
+    'ak4_nef0':           Bin('frac',            r'Leading Jet Neutral EM Frac',           *bins['frac']),
+    'ak4_nef1':           Bin('frac',            r'Trailing Jet Neutral EM Frac',          *bins['frac']),
+    'ak4_nhf0':           Bin('frac',            r'Leading Jet Neutral Hadronic Frac',     *bins['frac']),
+    'ak4_nhf1':           Bin('frac',            r'Trailing Jet Neutral Hadronic Frac',    *bins['frac']),
+    'ak4_chf0':           Bin('frac',            r'Leading Jet Charged Hadronic Frac',     *bins['frac']),
+    'ak4_chf1':           Bin('frac',            r'Trailing Jet Charged Hadronic Frac',    *bins['frac']),
+    'ak4_central_eta':    Bin('jeteta',          r'More Central Jet $\eta$',               *bins['eta']),
+    'ak4_forward_eta':    Bin('jeteta',          r'More Forward Jet $\eta$',               *bins['eta']),
+    'extra_ak4_mult':     Bin('multiplicity',    r'Additional AK4 Jet Multiplicity',       *bins['mult']),
+    # 'dphitkpf':         Bin('dphi',            r'$\Delta\phi_{TK,PF}$',                  *bins['dphi']),
+    'met':                Bin('met',             r'$p_{T}^{miss}$ (GeV)',                  *bins['met']),
+    'met_phi':            Bin('phi',             r'$\phi_{MET}$',                          *bins['phi']),
+    'calomet_pt':         Bin('met',             r'$p_{T,CALO}^{miss,no-\ell}$ (GeV)',     *bins['met']),
+    'calomet_phi':        Bin('phi',             r'$\phi_{MET}^{CALO}$',                   *bins['phi']),
+    'ak4_mult':           Bin('multiplicity',    r'AK4 multiplicity',                      *bins['mult']),
+    'electron_pt':        Bin('pt',              r'Electron $p_{T}$ (GeV)',                *bins['lep_pt']),
+    'electron_pt0':       Bin('pt',              r'Leading electron $p_{T}$ (GeV)',        *bins['lep_pt']),
+    'electron_pt1':       Bin('pt',              r'Trailing electron $p_{T}$ (GeV)',       *bins['lep_pt']),
+    'electron_mt':        Bin('mt',              r'Electron $M_{T}$ (GeV)',                *bins['mt']),
+    'muon_pt':            Bin('pt',              r'Muon $p_{T}$ (GeV)',                    *bins['lep_pt']),
+    'muon_pt0':           Bin('pt',              r'Leading muon $p_{T}$ (GeV)',            *bins['lep_pt']),
+    'muon_pt1':           Bin('pt',              r'Trailing muon $p_{T}$ (GeV)',           *bins['lep_pt']),
+    'muon_mt':            Bin('mt',              r'Muon $M_{T}$ (GeV)',                    *bins['mt']),
+    'photon_pt0':         Bin('pt',              r'Photon $p_{T}$ (GeV)',                  *bins['photon_pt']),
+    'recoil':             Bin('recoil',          r'Recoil (GeV)',                          *bins['recoil']),
+    'dphijr':             Bin('dphi',            r'min $\Delta\phi(j,recoil)$',            *bins['dphi']),
+    'dimuon_mass':        Bin('dilepton_mass',   r'M($\mu^{+}\mu^{-}$)',                   *bins['dilepton_mass']),
+    'dielectron_mass':    Bin('dilepton_mass',   r'M($e^{+}e^{-}$)',                       *bins['dilepton_mass']),
+    'mjj_transformed':    Bin('transformed',     r'Rescaled $M_{jj}$',                     *bins['eta']),
+    'detajj_transformed': Bin('transformed',     r'Rescaled $\Delta\eta_{jj}$',            *bins['eta']),
+    'dphijj_transformed': Bin('transformed',     r'Rescaled $\Delta\phi_{jj}$',            *bins['eta']),
 }
 
 ylims = {
@@ -187,7 +203,7 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     elif distribution == 'dphitkpf':
         new_bins = [ibin.lo for ibin in h.identifiers('dphi') if ibin.lo < 2] + [3.5]
         
-        new_ax = hist.Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
+        new_ax = Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
         h = h.rebin('dphi', new_ax)
 
     # This sorting messes up in SR for some reason
