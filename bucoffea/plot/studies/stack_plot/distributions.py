@@ -4,33 +4,27 @@ from coffea import hist
 
 Bin = hist.Bin
 
+def obj_variables(object_name, indices, vars, extravars=None):
+    if len(indices)==0:
+        indices = ['']
+    if extravars is not None:
+        vars += extravars
+    return [f"{object_name}_{var}{id}" for var in vars for id in indices]
 
-common_distributions = [
-    'mjj',
-    'detajj',
-    'dphijj',
-    #'cnn_score',
-    #'dnn_score',
-    'particlenet_score',
-    'recoil',
-    'ak4_eta0',
-    'ak4_eta1',
-    'ak4_pt0',
-    'ak4_pt1',
-    # 'ak4_central_eta',
-    # 'ak4_forward_eta',
-    # 'dphijr',
-]
+
+common_distributions = [ 'mjj', 'detajj', 'dphijj', 'recoil', 'dphijr', 'particlenet_score']
+common_distributions += obj_variables(object_name='ak4', indices=[0,1], vars=['eta','pt'])
+# common_distributions += obj_variables(object_name='ak4', indices=[''], vars=['central_eta','forward_eta'])
 
 # Distributions to plot for each region
 distributions = {
-    'sr_vbf' : common_distributions + ['ak4_nef0', 'ak4_nef1', 'ak4_nhf0', 'ak4_nhf1', 'ak4_chf0', 'ak4_chf1'],
-    'sr_vbf_nodijetcut' : common_distributions + ['ak4_nef0', 'ak4_nef1', 'ak4_nhf0', 'ak4_nhf1', 'ak4_chf0', 'ak4_chf1'],
-    'cr_1m_vbf' : common_distributions + ['muon_pt', 'muon_eta', 'muon_phi', 'muon_mt'],
-    'cr_1e_vbf' : common_distributions + ['electron_pt', 'electron_eta', 'electron_phi', 'electron_mt'],
-    'cr_2m_vbf' : common_distributions + ['muon_pt0', 'muon_eta0', 'muon_phi0', 'muon_pt1', 'muon_eta1', 'muon_phi1', 'dimuon_mass'],
-    'cr_2e_vbf' : common_distributions + ['electron_pt0', 'electron_eta0', 'electron_phi0', 'electron_pt1', 'electron_eta1', 'electron_phi1', 'dielectron_mass'],
-    'cr_g_vbf'  : common_distributions + ['photon_pt0', 'photon_eta0', 'photon_phi0'],
+    'sr_vbf'    :         common_distributions + obj_variables(object_name='ak4',       indices=[0,1], vars=['nef','nhf','chf']),
+    'sr_vbf_nodijetcut' : common_distributions + obj_variables(object_name='ak4',       indices=[0,1], vars=['nef','nhf','chf']),
+    'cr_1m_vbf' :         common_distributions + obj_variables(object_name='muon',      indices=[],    vars=['pt', 'eta', 'phi'], extravars=['mt']),
+    'cr_1e_vbf' :         common_distributions + obj_variables(object_name='electron',  indices=[],    vars=['pt', 'eta', 'phi'], extravars=['mt']),
+    'cr_2m_vbf' :         common_distributions + obj_variables(object_name='muon',      indices=[0,1], vars=['pt', 'eta', 'phi']) + ['dimuon_mass'],
+    'cr_2e_vbf' :         common_distributions + obj_variables(object_name='electron',  indices=[0,1], vars=['pt', 'eta', 'phi']) + ['dielectron_mass'],
+    'cr_g_vbf'  :         common_distributions + obj_variables(object_name='photon',    indices=[0],   vars=['pt', 'eta', 'phi']),
 } 
 
 recoil_bins_2016 = [ 250,  280,  310,  340,  370,  400,  430,  470,  510, 550,  590,  640,  690,  740,  790,  840,  900,  960, 1020, 1090, 1160, 1250, 1400]
