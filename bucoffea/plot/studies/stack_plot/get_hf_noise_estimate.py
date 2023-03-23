@@ -14,21 +14,9 @@ from coffea import hist
 from klepto.archives import dir_archive
 from pprint import pprint
 from distributions import distributions, binnings
+from bucoffea.plot.plotter import legend_labels
 
 pjoin = os.path.join
-
-legend_labels = {
-    'DY.*' : "QCD Z$\\rightarrow\\ell\\ell$",
-    'EWKZ.*ZToLL.*' : "EWK Z$\\rightarrow\\ell\\ell$",
-    'WN*J.*LNu.*' : "QCD W$\\rightarrow\\ell\\nu$",
-    'EWKW.*LNu.*' : "EWK W$\\rightarrow\\ell\\nu$",
-    'ZN*JetsToNuNu.*.*' : "QCD Z$\\rightarrow\\nu\\nu$",
-    'EWKZ.*ZToNuNu.*' : "EWK Z$\\rightarrow\\nu\\nu$",
-    'QCD.*' : "QCD",
-    'Top.*' : "Top quark",
-    'Diboson.*' : "WW/WZ/ZZ",
-    'MET.*' : "Data"
-}
 
 def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2018], region_name='cr_vbf_qcd'):
     '''
