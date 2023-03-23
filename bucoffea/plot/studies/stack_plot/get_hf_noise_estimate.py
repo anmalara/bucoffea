@@ -13,8 +13,8 @@ from bucoffea.plot.util import merge_extensions, merge_datasets, scale_xs_lumi, 
 from coffea import hist
 from klepto.archives import dir_archive
 from pprint import pprint
-from distributions import distributions, binnings
-from bucoffea.plot.plotter import legend_labels
+from distributions import distributions
+from bucoffea.plot.plotter import binnings, legend_labels
 
 pjoin = os.path.join
 
