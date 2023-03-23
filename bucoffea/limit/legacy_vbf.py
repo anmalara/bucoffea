@@ -40,10 +40,10 @@ def datasets(year, include_sr_data=False):
 
     mc = {
         'sr_vbf_no_veto_all' : re.compile(f'(ttH_HToInvisible_M125.*|WH_WToQQ_Hinv_M125.*|ZH_ZToQQ_HToInv.*M125.*|(VBF|GluGlu)_HToInvisible.*M125.*|ggZH.*|ZNJetsToNuNu_M-50_LHEFilterPtZ-FXFX.*|EW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-        'cr_1m_vbf' : re.compile(f'(EW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-        'cr_1e_vbf' : re.compile(f'(EW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-        'cr_2m_vbf' : re.compile(f'(EW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-        'cr_2e_vbf' : re.compile(f'(EW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
+        'cr_1m_vbf' : re.compile(f'(EWKZ2Jets.*ZToLL.*|EWKW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
+        'cr_1e_vbf' : re.compile(f'(EWKZ2Jets.*ZToLL.*|EWKW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
+        'cr_2m_vbf' : re.compile(f'(EWKZ2Jets.*ZToLL.*|EWKW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
+        'cr_2e_vbf' : re.compile(f'(EWKZ2Jets.*ZToLL.*|EWKW.*|Top_FXFX.*|Diboson.*|QCD_HT.*|DYJetsToLL.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
         'cr_g_vbf' : re.compile(f'(GJets_DR-0p4.*|VBFGamma.*|QCD_data.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
         'sr_vbf' : re.compile('nomatch')
     }
@@ -164,7 +164,7 @@ def mjj_bins_2016():
 
 def nn_score_ax() -> hist.Bin:
     """Returns the new binning for the neural network score."""
-    new_ax = hist.Bin("score", "Neural network score", 25, 0, 1)
+    new_ax = hist.Bin("score", "Neural network score", 50, 0, 1)
     return new_ax
 
 
@@ -224,12 +224,17 @@ def legacy_limit_input_vbf(acc,
 
     # Get the distribution and pre-process
     h = copy.deepcopy(acc[distribution])
-    if distribution in ['cnn_score', 'dnn_score']:
+    if distribution == "particlenet_score":
         newax = nn_score_ax()
         axname = 'score'
+
+        # Integrate for the VBF-like score
+        h = h.integrate("score_type", "VBF-like")
+
     elif distribution == 'mjj':
         newax = hist.Bin('mjj','$M_{jj}$ (GeV)', mjj_bins_2016())
         axname = 'mjj'
+    
     else:
         raise RuntimeError(f'Limit input for VBF is not supported for distribution: {distribution}')
     

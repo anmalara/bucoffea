@@ -18,7 +18,7 @@ pjoin = os.path.join
 def parse_commandline():
     parser = argparse.ArgumentParser()
     parser.add_argument('inpath', type=str, help='Input path to use.')
-    parser.add_argument('--distribution', type=str, help='Distribution to make limit inputs for.', default='cnn_score')
+    parser.add_argument('--distribution', type=str, help='Distribution to make limit inputs for.', default='particlenet_score')
     parser.add_argument('--channel', type=str, help='Channel to make inputs for.', default='vbfhinv')
     parser.add_argument('--unblind', action='store_true', help='Include signal region data')
     parser.add_argument('--years', nargs='*', default=[2017, 2018], help='The years to prepare the limit input for')
