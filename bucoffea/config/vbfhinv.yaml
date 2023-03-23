@@ -8,6 +8,8 @@ default:
           mass: 200
           dphi: 1.5
           deta: 1
+          highdphi: 2
+          highdeta: 3
         cut_based:
           mass: 1300
           dphi: 1.5

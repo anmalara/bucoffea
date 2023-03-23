@@ -334,7 +334,14 @@ def vbfhinv_regions(cfg):
         regions['sr_vbf'].remove('eemitigation')
 
     if cfg.RUN.REGION_WITHOUT_DIJET_CUTS:
-        regions['sr_vbf_nodijetcut'] = remove_items(regions['sr_vbf'], ['mjj','detajj','dphijj'])
+        regions['sr_vbf_loose'] = remove_items(regions['sr_vbf'], ['mjj','detajj','dphijj'])
+        regions['sr_vbf_loose_dphi']       = append_items(regions['sr_vbf_loose'], ['dphijj'])
+        regions['sr_vbf_loose_deta']       = append_items(regions['sr_vbf_loose'], ['detajj'])
+        regions['sr_vbf_loose_dphi_deta']  = append_items(regions['sr_vbf_loose'], ['dphijj', 'detajj'])
+
+        regions['sr_vbf_highdphi']          = append_items(regions['sr_vbf_loose'], ['highdphijj'])
+        regions['sr_vbf_highdphi_mjj']      = append_items(regions['sr_vbf_highdphi'], ['mjj'])
+        regions['sr_vbf_highdphi_highdeta'] = append_items(regions['sr_vbf_highdphi'], ['highdetajj'])
 
     # SR without PU weights
     # regions['sr_vbf_no_pu'] = copy.deepcopy(regions['sr_vbf'])

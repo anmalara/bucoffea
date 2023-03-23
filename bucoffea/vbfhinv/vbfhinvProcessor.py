@@ -199,7 +199,7 @@ class vbfhinvProcessor(processor.ProcessorABC):
         # Check out setup_candidates for filtering details
         met_pt, met_phi, ak4, bjets, muons, electrons, taus, photons = setup_candidates(df, cfg)
         # Set up ParticleNet
-        pfcands = load_pf_cands(df,[muons,electrons])
+        pfcands = load_pf_cands(df,[muons,electrons, taus, photons])
         session = load_particlenet_model(bucoffea_path("particlenet_models/model_ops12.onnx"))
 
         # Filtering ak4 jets according to pileup ID
@@ -371,6 +371,8 @@ class vbfhinvProcessor(processor.ProcessorABC):
         selection.add('mjj', df['mjj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.MASS)
         selection.add('dphijj', df['dphijj'] < cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DPHI)
         selection.add('detajj', df['detajj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.DETA)
+        selection.add('highdphijj', df['dphijj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.HIGHDPHI)
+        selection.add('highdetajj', df['detajj'] > cfg.SELECTION.SIGNAL.DIJET.SHAPE_BASED.HIGHDETA)
 
         # Reject events where the leading jet has momentum > 6.5 TeV
         selection.add('leadak4_clean', leadak4_clean.any())
