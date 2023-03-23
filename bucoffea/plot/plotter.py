@@ -50,7 +50,7 @@ bins = {
     'mult':          [10, -0.5, 9.5],
 }
 
-mjj = '$M_{jj} \ (GeV)$'
+mjj = '$M_{jj}$ (GeV)'
 pt  ='$p_{T}$ (GeV)'
 eta ='$\eta$'
 phi ='$\phi$'
@@ -152,11 +152,11 @@ legend_labels_IC = {
 
 legend_titles = {
     'sr_vbf' : 'VBF Signal Region',
-    'cr_1m_vbf' : f'VBF $1\mu$ Region',
-    'cr_2m_vbf' : f'VBF $2\mu$ Region',
-    'cr_1e_vbf' : f'VBF $1e$ Region',
-    'cr_2e_vbf' : f'VBF $2e$ Region',
-    'cr_g_vbf' : f'VBF $\gamma$ Region',
+    'cr_1m_vbf' : r'VBF $1\mu$ Region',
+    'cr_2m_vbf' : r'VBF $2\mu$ Region',
+    'cr_1e_vbf' : r'VBF $1e$ Region',
+    'cr_2e_vbf' : r'VBF $2e$ Region',
+    'cr_g_vbf'  : r'VBF $\gamma$ Region',
 }
 
 colors = {
@@ -215,7 +215,7 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     elif distribution == 'dphitkpf':
         new_bins = [ibin.lo for ibin in h.identifiers('dphi') if ibin.lo < 2] + [3.5]
         
-        new_ax = Bin('dphi', f'$\Delta\phi_{TK,PF}$', new_bins)
+        new_ax = Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
         h = h.rebin('dphi', new_ax)
 
     # This sorting messes up in SR for some reason
@@ -376,16 +376,6 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
             histtype='errorbar',
             **data_err_opts
         )
-
-    xlabels = {
-        'mjj': f'{mjj}',
-        'ak4_eta0': f'{jet0} {eta}',
-        'ak4_eta1': f'{jet1} {eta}',
-    }
-
-    if distribution in xlabels.keys():
-        ax.set_xlabel(xlabels[distribution])
-        rax.set_xlabel(xlabels[distribution])
     
     rax.set_ylabel('Data / MC')
     rax.set_ylim(0.5,1.5)
