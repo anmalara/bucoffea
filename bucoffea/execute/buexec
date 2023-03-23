@@ -14,6 +14,7 @@ from coffea.util import save
 from bucoffea.execute.dataset_definitions import (files_from_ac,
                                                   files_from_das,
                                                   files_from_eos)
+from bucoffea.execute.dataset_split import get_files_per_job
 from bucoffea.helpers import bucoffea_path, vo_proxy_path, xrootd_format
 from bucoffea.helpers.condor import condor_submit
 from bucoffea.helpers.git import git_rev_parse, git_diff
@@ -216,7 +217,10 @@ def do_submit(args):
         print(f"Writing submission files for dataset: {dataset}.")
 
         if args.filesperjob:
-            nchunk = math.ceil(len(files)/args.filesperjob)
+            filesperjob = get_files_per_job(dataset,time_per_job = 3)
+            if filesperjob<0:
+                filesperjob = args.filesperjob
+            nchunk = math.ceil(len(files)/filesperjob)
             chunks = chunk_by_files(files, nchunk=int(nchunk))
         else:
             chunks = chunk_by_events(files, chunksize=args.eventsperjob, workers=8)
