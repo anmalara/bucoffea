@@ -205,8 +205,8 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
         # Otherwise, take the one from the relevant output directory
         if qcd_file:
             qcdfilepath = qcd_file
-        else:    
-            qcdfilepath = f'output/{outtag}/hf_estimate/vbfhinv_hf_estimate.root'
+        else:
+            qcdfilepath = pjoin(outtag,'hf_estimate','vbfhinv_hf_estimate.root')
         
         # Make sure that the HF-noise estimate ROOT file points to a valid path
         assert os.path.exists(qcdfilepath), f"HF-noise file cannot be found: {qcdfilepath}"
@@ -426,9 +426,8 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
                 transform=ax.transAxes
                )
 
-    outdir = f'./output/{outtag}/{data_region}'
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    outdir = pjoin(outtag,data_region)
+    os.system('mkdir -p '+outdir)
     
     # For each file format (PDF, PNG etc.), save the plot
     for fformat in fformats:

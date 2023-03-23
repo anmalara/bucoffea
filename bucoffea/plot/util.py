@@ -541,3 +541,17 @@ def load_and_merge(inpath, distributions):
         acc[distribution] = merge_datasets(acc[distribution])
         acc[distribution].axis('dataset').sorting = 'integral'
     return acc
+
+
+def dump_info(args,outdir):
+    from datetime import datetime
+    """
+    Function to dump information about the command line arguments to an INFO.txt file.
+    """
+    os.system('mkdir -p '+outdir)
+    with open(pjoin(outdir, 'INFO.txt'), 'w+') as f:
+        f.write(f'Plot script run at: {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}\n')
+        f.write('Command line arguments:\n\n')
+        cli = vars(args)
+        for arg, val in cli.items():
+            f.write(f'{arg}: {val}\n')

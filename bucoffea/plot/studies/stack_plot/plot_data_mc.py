@@ -7,11 +7,10 @@ import re
 from klepto.archives import dir_archive
 from pprint import pprint
 from distributions import distributions
-from datetime import datetime
 from tqdm import tqdm
 
 from bucoffea.plot.plotter import plot_data_mc
-from bucoffea.plot.util import get_mc_scales
+from bucoffea.plot.util import get_mc_scales, dump_info
 
 pjoin = os.path.join
 
@@ -22,7 +21,8 @@ def make_plot(args):
     acc.load('sumw')
     acc.load('sumw2')
 
-    outtag = re.findall('merged_.*', args.inpath)[0].replace('/','')
+    outtag = pjoin('./output/',args.inpath.replace('..','').replace('/',''))
+    dump_info(args, outtag)
 
     for year in args.years:
         data = {
@@ -108,30 +108,9 @@ def commandline():
     args = parser.parse_args()
     return args
 
-def dump_info(args):
-    """
-    Function to dump information about the command line arguments to an INFO.txt file.
-    """
-    outdir = pjoin('./output/',list(filter(lambda x:x,args.inpath.split('/')))[-1])
-
-    # Store the command line arguments in the INFO.txt file
-    try:
-        os.makedirs(outdir)
-    except FileExistsError:
-        pass
-    
-    infofile = pjoin(outdir, 'INFO.txt')
-    with open(infofile, 'w+') as f:
-        f.write(f'Plot script run at: {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}\n')
-        f.write('Command line arguments:\n\n')
-        cli = vars(args)
-        for arg, val in cli.items():
-            f.write(f'{arg}: {val}\n')
-
 def main():
     args = commandline()
-    dump_info(args)
-    make_plot(args)    
+    make_plot(args)
 
 if __name__ == "__main__":
     main()

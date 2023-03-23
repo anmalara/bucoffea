@@ -9,7 +9,7 @@ import numpy as np
 from datetime import datetime
 
 from matplotlib import pyplot as plt
-from bucoffea.plot.util import merge_extensions, merge_datasets, scale_xs_lumi
+from bucoffea.plot.util import merge_extensions, merge_datasets, scale_xs_lumi, dump_info
 from coffea import hist
 from klepto.archives import dir_archive
 from pprint import pprint
@@ -30,16 +30,7 @@ legend_labels = {
     'MET.*' : "Data"
 }
 
-def parse_cli():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('inpath', help='Path to the merged input accumulator.')
-    parser.add_argument('--years', nargs='*', type=int, default=[2017,2018], help='Years to run.')
-    parser.add_argument('--region', default='cr_vbf_qcd', help='Name of the HF-noise enriched control region as defined in the VBF H(inv) processor.')
-    parser.add_argument('--distribution', default='.*', help='Regex specifying the list of distributions to run.')
-    args = parser.parse_args()
-    return args
-
-def get_hf_noise_estimate(acc, outtag, outrootfile, distribution, years=[2017, 2018], region_name='cr_vbf_qcd'):
+def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2018], region_name='cr_vbf_qcd'):
     '''
     Calculate the noise template due to forward-jet noise (HF-noise) in VBF signal region.
     '''
@@ -62,10 +53,6 @@ def get_hf_noise_estimate(acc, outtag, outrootfile, distribution, years=[2017, 2
         
         new_ax = hist.Bin('dphi', r'$\Delta\phi_{TK,PF}$', new_bins)
         h = h.rebin('dphi', new_ax)
-
-    outdir = f'./output/{outtag}/hf_estimate'
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
 
     # Get data and MC yields in the QCD CR
     h = h.integrate('region', region_name)
@@ -178,35 +165,33 @@ def get_hf_noise_estimate(acc, outtag, outrootfile, distribution, years=[2017, 2
 
         outrootfile[f'hf_estimate_{distribution}_{year}'] = (sumw, xedges)
 
+def commandline():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('inpath', help='Path to the merged input accumulator.')
+    parser.add_argument('--years', nargs='*', type=int, default=[2017,2018], help='Years to run.')
+    parser.add_argument('--region', default='cr_vbf_qcd', help='Name of the HF-noise enriched control region as defined in the VBF H(inv) processor.')
+    parser.add_argument('--distribution', default='.*', help='Regex specifying the list of distributions to run.')
+    args = parser.parse_args()
+    return args
+
 def main():
-    args = parse_cli()
+    args = commandline()
     inpath = args.inpath
     acc = dir_archive(inpath)
     acc.load('sumw')
     acc.load('sumw2')
 
-    outtag = re.findall('merged_.*', inpath)[0].replace('/','')
-    outdir = f'./output/{outtag}/hf_estimate'
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    outdir = pjoin('./output/',args.inpath.replace('..','').replace('/',''),'hf_estimate')
+    dump_info(args, outdir)
 
     outrootpath = pjoin(outdir, 'vbfhinv_hf_estimate.root')
     outrootfile = uproot.recreate(outrootpath)
     print(f'ROOT file initiated: {outrootpath}')
 
-    # Store the command line arguments in the INFO.txt file
-    infofile = pjoin(outdir, 'INFO.txt')
-    with open(infofile, 'w+') as f:
-        f.write(f'QCD estimation most recently ran at: {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}\n')
-        f.write('Command line arguments:\n\n')
-        cli = vars(args)
-        for arg, val in cli.items():
-            f.write(f'{arg}: {val}\n')
-
     for distribution in distributions['sr_vbf']:
         if not re.match(args.distribution, distribution):
             continue
-        get_hf_noise_estimate(acc, outtag, 
+        get_hf_noise_estimate(acc, outdir,
             outrootfile, 
             distribution=distribution, 
             years=args.years,
