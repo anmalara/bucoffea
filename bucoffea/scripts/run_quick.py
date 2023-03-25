@@ -17,14 +17,14 @@ def parse_commandline():
 
 def main():
     fileset = {
-        "VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_2018" : [
-            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/VBF_HToInvisible_M125_TuneCP5_withDipoleRecoil_13TeV_powheg_pythia8/VBF_HToInvisible_M125_withDipoleRecoil_pow_pythia8_2018/230303_180313/0000/tree_1.root"
+        "EGamma_ver2_2018D" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/EGamma/EGamma_ver2_2018D/230306_160844/0001/tree_1648.root"
         ],
-        "MET_ver1_2018D" : [
-            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/MET/MET_ver1_2018D/230306_160535/0000/tree_10.root"
+        "GluGlu_HToInvisible_M125_HiggspTgt190_pow_pythia8_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/GluGlu_HToInvisible_M125_HiggspTgt190_TuneCP5_13TeV_powheg_pythia8/GluGlu_HToInvisible_M125_HiggspTgt190_pow_pythia8_2018/230303_181428/0000/tree_10.root"
         ],
-        "Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018" : [
-            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20_TuneCP5_13TeV-amcatnloFXFX-pythia8/Z1JetsToNuNu_M-50_LHEFilterPtZ-50To150_MatchEWPDG20-amcatnloFXFX_2018/230303_183854/0000/tree_23.root"
+        "Z1JetsToNuNu_M-50_LHEFilterPtZ-250To400_MatchEWPDG20-amcatnloFXFX_2018" : [
+            "/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/Z1JetsToNuNu_M-50_LHEFilterPtZ-250To400_MatchEWPDG20_TuneCP5_13TeV-amcatnloFXFX-pythia8/Z1JetsToNuNu_M-50_LHEFilterPtZ-250To400_MatchEWPDG20-amcatnloFXFX_2018/230303_184057/0000/tree_11.root"
         ]
     }
 
