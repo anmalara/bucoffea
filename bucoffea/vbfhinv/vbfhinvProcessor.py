@@ -1105,6 +1105,14 @@ class vbfhinvProcessor(processor.ProcessorABC):
                             uncertainty=unc,
                             weight=w)
                         
+                        if len(scores) > 0:
+                            ezfill(
+                                'particlenet_score_unc',
+                                score=scores[:,0],
+                                uncertainty=unc,
+                                weight=w
+                            )
+                        
                 # Distributions without the NLO EWK weights for the V+jets samples
                 # This is used to compute the NLO EWK uncertainty on V+jets transfer factors
                 if df['is_nlo_z'] or df['is_nlo_w'] or df['is_lo_g']:
@@ -1114,6 +1122,9 @@ class vbfhinvProcessor(processor.ProcessorABC):
                     weight_noewk = (region_weights.weight() / ewk_weights)[mask]
 
                     ezfill('mjj_noewk',    mjj=df['mjj'][mask],     weight=weight_noewk)
+                    
+                    if len(scores) > 0:
+                        ezfill("particlenet_score_noewk",  score=scores[:,0],   weight=weight_noewk)
 
             # Muons
             if '_1m_' in region or '_2m_' in region or 'no_veto' in region:
