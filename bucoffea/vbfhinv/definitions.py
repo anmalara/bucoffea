@@ -116,6 +116,8 @@ def vbfhinv_accumulator(cfg):
 
     # ParticleNet score distribution
     items["particlenet_score"] = Hist("Counts", dataset_ax, region_ax, score_ax, score_type_ax)
+    items["particlenet_score_unc"] = Hist("Counts", dataset_ax, region_ax, score_ax, unc_ax)
+    items["particlenet_score_noewk"] = Hist("Counts", dataset_ax, region_ax, score_ax)
 
     items["mjj"] = Hist("Counts", dataset_ax, region_ax, mjj_ax)
     items["mjj_noewk"] = Hist("Counts", dataset_ax, region_ax, mjj_ax)

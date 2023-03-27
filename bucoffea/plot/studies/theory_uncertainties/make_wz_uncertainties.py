@@ -23,7 +23,7 @@ pjoin = os.path.join
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('inpath', help='Path to the merged coffea accumulator.')
-    parser.add_argument('-v', '--variable', default='cnn_score', help='Name of the variable to compute theory uncertainties.')
+    parser.add_argument('-v', '--variable', default='particlenet_score', help='Name of the variable to compute theory uncertainties.')
     parser.add_argument('-y', '--years', nargs='*', type=int, default=[2017, 2018], help='List of years to run.')
     args = parser.parse_args()
     return args
@@ -66,8 +66,8 @@ def from_coffea(inpath, outfile, variable='cnn_score', years=[2017, 2018]):
         if variable == 'mjj':
             mjj_ax = hist.Bin('mjj', r'$M_{jj}$ (GeV)', [200, 400, 600, 900, 1200, 1500, 2000, 2750, 3500, 5000])
             acc[distribution] = acc[distribution].rebin(acc[distribution].axis('mjj'), mjj_ax)
-        elif variable in ['cnn_score', 'dnn_score']:
-            score_ax = hist.Bin("score", "Neural network score", 25, 0, 1)
+        elif variable == 'particlenet_score':
+            score_ax = hist.Bin("score", "ParticleNet score", 50, 0, 1)
             acc[distribution] = acc[distribution].rebin(acc[distribution].axis('score'), score_ax)
         else:
             raise ValueError(f'Unsupported variable name: {variable}')

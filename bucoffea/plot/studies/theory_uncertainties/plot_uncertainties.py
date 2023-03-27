@@ -42,12 +42,12 @@ def plot_theory_uncertainties(args):
         'ewkcorr' : '#feb24c',
     }
 
-    for year in tqdm(args.years, desc="Plotting theory uncertainties"):
+    for year in args.years:
         uncertainties = [
             key.decode('utf-8') for key in f.keys() if key.decode('utf-8').startswith('uncertainty') and str(year) in key.decode('utf-8')
         ]
 
-        for process, proc_label in processes.items():
+        for process, proc_label in tqdm(processes.items(), desc=f"Plotting uncertainties for {year}"):
             has_process = lambda x: process in x
             # Get the uncertainties for this process
             uncs = list(filter(has_process, uncertainties))
@@ -76,11 +76,13 @@ def plot_theory_uncertainties(args):
             
             ax.legend(ncol=2, title='Uncertainty')
 
-            ax.set_xlabel('CNN score')
+            ax.set_xlabel('DNN score')
             ax.set_ylabel('Uncertainty on Transfer Factor')
 
             ax.set_xlim(0,1)
             ax.set_ylim(0.7,1.3)
+
+            ax.grid(True)
 
             ax.text(0,1,proc_label,
                 fontsize=14,
