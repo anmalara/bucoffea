@@ -275,6 +275,7 @@ def do_submit(args):
                 # "log" :f"/dev/null",
                 "request_cpus" : str(args.jobs),
                 "request_memory" : str(args.memory if args.memory else args.jobs*2100),
+                "request_disk": str(args.disk*1024*1024),
                 "+MaxRuntime" : f"{60*60*24}",
                 "on_exit_remove" : "((ExitBySignal == False) && (ExitCode == 0)) || (NumJobStarts >= 2)",
                 }
@@ -345,6 +346,7 @@ def main():
     parser_submit.add_argument('--async', action="store_true", default=False, help='Deprecated. Use --asynchronous instead.')
     parser_submit.add_argument('--debug', action="store_true", default=False, help='Print debugging info.')
     parser_submit.add_argument('--memory',type=int, default=None, help='Memory to request (in MB). Default is 2100 * number of cores.')
+    parser_submit.add_argument('--disk',type=int, default=2, help='Disk to request (in MB). Default is 2')
     parser_submit.set_defaults(func=do_submit)
 
     args = parser.parse_args()
