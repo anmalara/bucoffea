@@ -17,6 +17,7 @@ from distributions import distributions
 from bucoffea.plot.plotter import binnings, legend_labels, colors
 
 pjoin = os.path.join
+Bin = hist.Bin
 
 def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2018], region_name='cr_vbf_qcd'):
     '''
