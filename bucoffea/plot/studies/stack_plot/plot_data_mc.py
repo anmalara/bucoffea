@@ -27,7 +27,11 @@ def make_plot(args):
     for year in args.years:
         data = {
             'sr_vbf' : f'MET_{year}',
-            'sr_vbf_nodijetcut' : f'MET_{year}',
+            'sr_vbf_loose' : f'MET_{year}',
+            'sr_vbf_loose_dphi' : f'MET_{year}',
+            'sr_vbf_loose_dphi_deta' : f'MET_{year}',
+            'cr_vbf_highdphi' : f'MET_{year}',
+            'cr_vbf_highdphi_highdeta' : f'MET_{year}',
             'cr_1m_vbf' : f'MET_{year}',
             'cr_2m_vbf' : f'MET_{year}',
             'cr_1e_vbf' : f'EGamma_{year}',
@@ -36,13 +40,19 @@ def make_plot(args):
         }
 
         mc = {
-            'sr_vbf_no_veto_all' : re.compile(f'(ZNJetsToNuNu_M-50_LHEFilterPtZ-FXFX.*|EW.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-            'sr_vbf_nodijetcut' : re.compile(f'(ZNJetsToNuNu_M-50_LHEFilterPtZ-FXFX.*|EW.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-            'cr_1m_vbf' : re.compile(f'(EWKW.*|EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt_FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-            'cr_1e_vbf' : re.compile(f'(EWKW.*|EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt_FXFX.*|WJetsToLNu_Pt-FXFX.*).*{year}'),
-            'cr_2m_vbf' : re.compile(f'(EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX).*{year}'),
-            'cr_2e_vbf' : re.compile(f'(EWKZ.*ZToLL.*|Top_FXFX.*|Diboson.*|DYJetsToLL.*Pt.*FXFX).*{year}'),
-            'cr_g_vbf' : re.compile(f'(GJets_DR-0p4.*|VBFGamma.*|QCD_data.*).*{year}'),
+            'sr_vbf_no_veto_all' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'sr_vbf_loose' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'sr_vbf_loose_dphi' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'sr_vbf_loose_dphi_deta' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'cr_vbf_highdphi' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'cr_vbf_highdphi_highdeta' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            
+            # 'cr_1m_vbf' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*)(?!.*VBFGamma*)(?!.*GJets*)(?!.*WJetsToLNu*)(?!.*ZNJetsToNuNu*)(?!.*DYJetsToLL*)(?!.*EWKZ2Jets_ZToLL*)(?!.*EWKW2Jets_WToLNu*)(?!.*EWKZ2Jets_ZToNuNu*).*{year}'),
+            'cr_1m_vbf' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*)(?!.*EWKZ2Jets_ZToNuNu*).*{year}'),
+            'cr_1e_vbf' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'cr_2m_vbf' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'cr_2e_vbf' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
+            'cr_g_vbf' : re.compile(f'^(?!.*HToInv*)(?!.*MET*)(?!.*EGamma*)(?!.*QCD_data*)(?!.*M125*).*{year}'),
         }
 
         # Dictionary having the region -> scale factor mapping, by default this is an empty dict

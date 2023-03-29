@@ -152,6 +152,11 @@ legend_titles = {
     'cr_1e_vbf' : r'VBF $1e$ Region',
     'cr_2e_vbf' : r'VBF $2e$ Region',
     'cr_g_vbf'  : r'VBF $\gamma$ Region',
+    'sr_vbf_loose': 'VBF Loose Signal Region',
+    'sr_vbf_loose_dphi': r'VBF Loose Signal Region + $\Delta\phi$',
+    'sr_vbf_loose_dphi_deta': r'VBF Loose Signal Region + $\Delta\phi-\Delta\eta$',
+    'cr_vbf_highdphi': r'VBF large $\Delta\phi$ Region', ,
+    'cr_vbf_highdphi_highdeta': r'VBF large $\Delta\phi-\Delta\eta$ Region', ,
 }
 
 colors = {
@@ -182,6 +187,14 @@ colors_IC = {
     'Top.*' : (148, 147, 146),
     '.*HF (N|n)oise.*' : (174, 126, 230),
 }
+
+data_err_opts = {
+        'linestyle':'none',
+        'marker': '.',
+        'markersize': 10.,
+        'color':'k',
+        'elinewidth': 1,
+    }
 
 def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distribution='mjj', plot_signal=True, mcscale=1, binwnorm=None, fformats=['pdf'], qcd_file=None, jes_file=None, ulxs=True, is_blind=False):
     """
@@ -219,14 +232,6 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
 
     h_data = h.integrate('region', data_region)
     h_mc = h.integrate('region', mc_region)
-
-    data_err_opts = {
-        'linestyle':'none',
-        'marker': '.',
-        'markersize': 10.,
-        'color':'k',
-        'elinewidth': 1,
-    }
 
     # Build the MC stack
     datasets = list(map(str, h[mc].identifiers('dataset')))

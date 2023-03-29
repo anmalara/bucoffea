@@ -221,6 +221,9 @@ def merge_extensions(histogram, acc, reweight_pu=True, noscale=False):
     for key, value in to_remove:
         mapping[key].remove(value)
 
+    if reweight_pu:
+        if not 'sumw_pileup' in acc: acc.load('sumw_pileup')
+        if not 'nevents' in acc: acc.load('nevents')
     ### Sumw merging according to mapping
     for base, datasets in mapping.items():
         for d in datasets:
@@ -472,11 +475,18 @@ def scale_xs_lumi(histogram, mcscale=1, scale_lumi=True, ulxs=True):
     norm_dict = {mc : 1e3 * xs_map[mc] * (lumi(extract_year(mc), mcscale) if scale_lumi else 1) for mc in mcs}
     histogram.scale(norm_dict, axis='dataset')
 
-# def merge_and_norm(histogram, acc):
-#     histogram = merge_extensions(histogram, acc)
-#     scale_xs_lumi(histogram)
-#     histogram = merge_datasets(histogram)
-#     return histogram
+def merge_datasets_and_scale(histogram, acc, reweight_pu=True, noscale=False):
+    # Pre-processing of the histogram, merging datasets, scaling w.r.t. XS and lumi
+    histogram = merge_extensions(histogram, acc, reweight_pu=reweight_pu, noscale=noscale)
+    scale_xs_lumi(histogram)
+    histogram = merge_datasets(histogram)
+    return histogram
+
+def rebin(histogram, name, binnings):
+    if name in binnings.keys():
+        new_ax = binnings[name]
+        histogram = histogram.rebin(new_ax.name, new_ax)
+    return histogram
 
 def fig_ratio():
     """Shortcut to create figure with ratio and main panels
@@ -596,12 +606,12 @@ def ax_cosmetics(ax):
     ax.xaxis.set_ticks_position('both')
     ax.yaxis.set_ticks_position('both')
 
-def ratio_cosmetics(ax, yaxis='Data / MC'):
+def ratio_cosmetics(ax, yaxis='Data / MC', ylims=(0.5,1.5), ystep=None, ystep_minor=None):
     from matplotlib.ticker import MultipleLocator
     ax.set_ylabel(yaxis)
-    ax.set_ylim(0.5,1.5)
-    ax.yaxis.set_major_locator(MultipleLocator(0.2))
-    ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+    ax.set_ylim(*ylims)
+    if ystep: ax.yaxis.set_major_locator(MultipleLocator(ystep))
+    if ystep_minor: ax.yaxis.set_minor_locator(MultipleLocator(ystep_minor))
     ax.grid(axis='y',which='both',linestyle='--')
     ax.axhline(1., xmin=0, xmax=1, color=(0,0,0,0.4), ls='--')
 
