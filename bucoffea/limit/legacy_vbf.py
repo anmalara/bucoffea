@@ -305,9 +305,9 @@ def legacy_limit_input_vbf(acc,
     
     # Merge the 2017 and 2018 histograms into a single file
     # under separate sub-directories
-    merge_legacy_inputs(outdir)
+    merge_legacy_inputs(outdir, xaxis_title=distribution)
 
-def merge_legacy_inputs(outdir):
+def merge_legacy_inputs(outdir, xaxis_title="particlenet_score"):
     '''
     Workaround for uproot's lack of subdirectory support.
     '''
@@ -330,6 +330,6 @@ def merge_legacy_inputs(outdir):
                 h = key.ReadObj().Clone()
                 h.SetTitle(h.GetName())
                 h.SetDirectory(subdir)
-                h.GetXaxis().SetTitle('mjj')
+                h.GetXaxis().SetTitle(xaxis_title)
                 suppress_negative_bins(h)
                 subdir.Write()
