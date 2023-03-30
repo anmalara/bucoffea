@@ -222,9 +222,6 @@ def do_submit(args):
                 filesperjob = args.filesperjob
             nchunk = math.ceil(len(files)/filesperjob)
             chunks = chunk_by_files(files, nchunk=int(nchunk))
-            if 'Z2JetsToNuNu_M-50_LHEFilterPtZ-250To400' in dataset:
-                # This is very annoying, but even 1 file is generally too large
-                chunks = chunk_by_events(files, chunksize=1000000, workers=8)
         else:
             chunks = chunk_by_events(files, chunksize=args.eventsperjob, workers=8)
         for ichunk, chunk in enumerate(chunks):
@@ -277,11 +274,14 @@ def do_submit(args):
                 "log" : f"{filedir}/log_{chunkname}.txt",
                 # "log" :f"/dev/null",
                 "request_cpus" : str(args.jobs),
-                "request_memory" : str(args.memory if args.memory else args.jobs*2100),
+                "request_memory" : str(args.memory if args.memory else args.jobs*2*1024),
                 "request_disk": str(args.disk*1024*1024),
                 "+MaxRuntime" : f"{60*60*24}",
                 "on_exit_remove" : "((ExitBySignal == False) && (ExitCode == 0)) || (NumJobStarts >= 2)",
                 }
+            if 'Z2JetsToNuNu_M-50_LHEFilterPtZ-250To400' in dataset:
+                submission_settings['request_memory'] = str(4*2*1024)
+                submission_settings['request_disk'] = str(8*1024*1024)
             if args.send_proxy:
                 submission_settings['Proxy_path'] = pjoin(proxydir,os.path.basename(proxy))
 

@@ -35,4 +35,6 @@ def get_files_per_job(dataset,time_per_job = 3):
     filesperjob = -1
     if len(keys_contained)==1:
         filesperjob = int(round(filesperjob_dict[keys_contained[0]] * time_per_job))
+        if 'Z2JetsToNuNu_M-50_LHEFilterPtZ-250To400' in dataset:
+            filesperjob = 1
     return filesperjob
