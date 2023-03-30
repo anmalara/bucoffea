@@ -222,6 +222,9 @@ def do_submit(args):
                 filesperjob = args.filesperjob
             nchunk = math.ceil(len(files)/filesperjob)
             chunks = chunk_by_files(files, nchunk=int(nchunk))
+            if 'Z2JetsToNuNu_M-50_LHEFilterPtZ-250To400' == dataset:
+                # This is very annoying, but even 1 file is generally too large
+                chunks = chunk_by_events(files, chunksize='1000000', workers=8)
         else:
             chunks = chunk_by_events(files, chunksize=args.eventsperjob, workers=8)
         for ichunk, chunk in enumerate(chunks):

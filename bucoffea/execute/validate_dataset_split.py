@@ -3,7 +3,6 @@ import numpy as np
 
 submitted = []
 info = {}
-nsub = 0
 samples = ['GluGlu_HToInvisible',
             'ttH_HToInvisible',
             'VBF_HToInvisible',
@@ -54,25 +53,27 @@ for sample in samples:
     if len(temp)==0:
         print(sample, temp,times, glob.glob("submission/PFNANO_V9_17Feb23_PostNanoTools/files/input_*"+sample+"*txt"))
         continue
+    if len(times)>3:
+        times.remove(np.min(times)) # to be conservative
     info[sample]['times'] = np.average(times)
     info[sample]['err'] = np.std(times)
     info[sample]['min'] = np.min(times)
     info[sample]['max'] = np.max(times)
     info[sample]['exp'] = np.max(times)*info[sample]['nfiles']
-    info[sample]['split'] = max(1, info[sample]['exp']/(60),0)
+    info[sample]['split'] = max(1, info[sample]['exp']/(60))
     info[sample]['filesperjob'] = max(1, 1.*info[sample]['nfiles']/info[sample]['split'])
-    nsub += info[sample]['split']
     submitted += temp 
 
 all_files = glob.glob("/eos/cms/store/group/phys_higgs/vbfhiggs/PFNANO_V9_17Feb23_PostNanoTools/*/*/*/*/*root")
 print(f"Non analysed {len(list(set(all_files)-set(submitted)))} out of {len(all_files)} files")
 
-hours = 1
 nsub_tot = 0
 for sample in info.keys():
-    nsub = int(round(max(1,info[sample]['split']/hours),0))
+    n_files = int(round(info[sample]['filesperjob'],0))
+    nsub = int(round(info[sample]['nfiles']/n_files,0))
     nsub_tot += nsub
-    n_files = int(round(info[sample]['filesperjob']*hours,0))
+    if n_files==0:
+        print (sample,info[sample])
     print(f"Split by {n_files} file can be used for sample:{sample} to produce {nsub} jobs")
 print("nsub", nsub_tot)
 
