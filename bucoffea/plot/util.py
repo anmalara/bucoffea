@@ -495,6 +495,7 @@ def fig_ratio():
     :rtype: tuple(Figure, axes, axes)
     """
     fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
+    fig.patch.set_alpha(0)
     ax_cosmetics(ax)
     ax_cosmetics(rax)
     return fig, ax, rax
@@ -506,6 +507,7 @@ def fig_double_ratio():
     :rtype: tuple(Figure, axes, axes)
     """
     fig, (ax, rax1, rax2) = plt.subplots(3, 1, figsize=(7,7), gridspec_kw={"height_ratios": (2,1, 1)}, sharex=True)
+    fig.patch.set_alpha(0)
     return fig, ax, rax1, rax2
 
 

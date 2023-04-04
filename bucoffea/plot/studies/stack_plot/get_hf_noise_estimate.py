@@ -123,7 +123,7 @@ def get_hf_noise_estimate(acc, outdir, outrootfile, distribution, years=[2017, 2
 def commandline():
     parser = argparse.ArgumentParser()
     parser.add_argument('inpath', help='Path to the merged input accumulator.')
-    parser.add_argument('--years', nargs='*', type=int, default=[2017,2018], help='Years to run.')
+    parser.add_argument('--years', nargs='*', type=int, default=[2018], help='Years to run.')
     parser.add_argument('--region', default='cr_vbf_qcd', help='Name of the HF-noise enriched control region as defined in the VBF H(inv) processor.')
     parser.add_argument('--distribution', default='.*', help='Regex specifying the list of distributions to run.')
     args = parser.parse_args()

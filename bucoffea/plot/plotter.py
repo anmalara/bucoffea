@@ -155,8 +155,8 @@ legend_titles = {
     'sr_vbf_loose': 'VBF Loose Signal Region',
     'sr_vbf_loose_dphi': r'VBF Loose Signal Region + $\Delta\phi$',
     'sr_vbf_loose_dphi_deta': r'VBF Loose Signal Region + $\Delta\phi-\Delta\eta$',
-    'cr_vbf_highdphi': r'VBF large $\Delta\phi$ Region', ,
-    'cr_vbf_highdphi_highdeta': r'VBF large $\Delta\phi-\Delta\eta$ Region', ,
+    'cr_vbf_highdphi': r'VBF large $\Delta\phi$ Region',
+    'cr_vbf_highdphi_highdeta': r'VBF large $\Delta\phi-\Delta\eta$ Region',
 }
 
 colors = {
@@ -237,12 +237,14 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
     datasets = list(map(str, h[mc].identifiers('dataset')))
 
     plot_info = {
-        'label' : datasets,
+        'label' : [],
         'sumw' : [],
     }
 
     for dataset in datasets:
-        sumw = h_mc.integrate('dataset', dataset).values(overflow=overflow)[()]        
+        sumw = h_mc.integrate('dataset', dataset).values(overflow=overflow)[()]
+        if sumw.sum()<=0: continue
+        plot_info['label'].append(dataset)
         plot_info['sumw'].append(sumw)
 
     # Get the QCD template (HF-noise estimation), only to be used in the signal region
@@ -285,16 +287,16 @@ def plot_data_mc(acc, outtag, year, data, mc, data_region, mc_region, distributi
 
         h_signal = h.integrate('region', mc_region)[signal]
         h_signal.scale(mcscale)
-
-        hist.plot1d(
-            h_signal,
-            ax=ax,
-            overlay='dataset',
-            overflow=overflow,
-            line_opts=signal_line_opts,
-            binwnorm=binwnorm,
-            clear=False
-        )
+        if h_signal.values(overflow=overflow)[()].sum():
+            hist.plot1d(
+                h_signal,
+                ax=ax,
+                overlay='dataset',
+                overflow=overflow,
+                line_opts=signal_line_opts,
+                binwnorm=binwnorm,
+                clear=False
+                )
 
     ax.set_yscale('log')
     if distribution == 'mjj':
