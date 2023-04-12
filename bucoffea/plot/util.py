@@ -3,6 +3,7 @@ import os
 import shutil
 import random
 import re
+import math
 import csv
 import string
 
@@ -82,6 +83,24 @@ def rebin_histogram(h: hist.Hist, variable: str) -> hist.Hist:
         h = h.rebin(new_bin.name, new_bin)
     
     return h
+
+def rebin_particlenet_score(h):
+    """Rebin particlenet score axis. Annoying step due to float precision issues with NumPy."""
+    xedges = [0] + list(np.linspace(0.1,1,19))
+    new_bins = []
+    i = 0
+
+    for ibin in h.identifiers("score"):
+        if math.isclose(ibin.lo, xedges[i]):
+            new_bins.append(ibin.lo)
+            i += 1
+
+    newax = hist.Bin("score", "Neural network score", new_bins)
+    h = h.rebin("score", newax)
+
+    return h
+
+
 
 def get_dataset_tag(dataset: str) -> str:
     mapping = {

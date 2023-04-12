@@ -27,6 +27,13 @@ def plot_theory_uncertainties(args):
     """
     f = uproot.open(args.inpath)
 
+    if 'mjj' in args.inpath:
+        variable = 'mjj'
+    elif 'particlenet_score' in args.inpath:
+        variable = 'particlenet_score'
+    else:
+        raise ValueError("Could not figure out variable name from input file.")
+
     processes = {
         'ratio_z_qcd' : r'QCD $Z(\nu\nu)$ / $W(\ell\nu)$',
         'ratio_z_ewk' : r'EWK $Z(\nu\nu)$ / $W(\ell\nu)$',
@@ -58,28 +65,33 @@ def plot_theory_uncertainties(args):
             for unc in uncs:
                 histogram = f[unc]
 
+                xedges = histogram.edges
+                xcenters = 0.5 * (xedges[1:] + xedges[:-1])
+
                 temp = re.findall('(muf|mur|pdf|ewkcorr).*(up|down)', unc)[0]
                 label = '_'.join(temp)
 
                 kwargs = {
+                    'marker': 'o',
+                    'markersize': 6,
                     'label' : label,
                     'linestyle' : '-' if temp[1] == 'up' else '--',
                     'color' : color_mapping[temp[0]],
                 }
 
-                hep.histplot(
-                    histogram.values,
-                    histogram.edges,
-                    ax=ax,
-                    **kwargs,
-                )
-            
-            ax.legend(ncol=2, title='Uncertainty')
+                ax.plot(xcenters, histogram.values, **kwargs)
 
-            ax.set_xlabel('DNN score')
+            ax.legend(ncol=2, title='Uncertainty', prop={'size': 8})
+
+            if variable == 'particlenet_score':
+                ax.set_xlabel('DNN score')
+                ax.set_xlim(0,1)
+            
+            else:
+                ax.set_xlabel(r"$M_{jj} \ (GeV)$")
+
             ax.set_ylabel('Uncertainty on Transfer Factor')
 
-            ax.set_xlim(0,1)
             ax.set_ylim(0.7,1.3)
 
             ax.grid(True)
@@ -91,7 +103,7 @@ def plot_theory_uncertainties(args):
                 transform=ax.transAxes,
             )
 
-            outpath = pjoin(args.outdir, f'uncertainties_{process}_{year}.pdf')
+            outpath = pjoin(args.outdir, f'uncertainties_{process}_{variable}_{year}.pdf')
             fig.savefig(outpath)
             plt.close(fig)
 
