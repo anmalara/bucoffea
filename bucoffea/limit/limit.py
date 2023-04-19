@@ -63,7 +63,7 @@ def main():
     acc.load('sumw_pileup')
     acc.load('nevents')
 
-    outdir = pjoin('./output/',list(filter(lambda x:x,args.inpath.split('/')))[-1])
+    outdir = pjoin('./output', list(filter(lambda x:x,args.inpath.split('/')))[-1], args.distribution)
 
     try:
         os.makedirs(outdir)

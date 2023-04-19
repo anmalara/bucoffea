@@ -15,6 +15,7 @@ from bucoffea.plot.util import (
     merge_datasets, 
     merge_extensions, 
     scale_xs_lumi, 
+    rebin_particlenet_score,
     URTH1
     )
 
@@ -164,7 +165,8 @@ def mjj_bins_2016():
 
 def nn_score_ax() -> hist.Bin:
     """Returns the new binning for the neural network score."""
-    new_ax = hist.Bin("score", "Neural network score", 50, 0, 1)
+    edges = [0, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.22, 0.24, 0.26, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0]
+    new_ax = hist.Bin("score", "Neural network score", edges)
     return new_ax
 
 
@@ -191,7 +193,7 @@ def export_coffea_histogram(h, overflow='over', axname='score', suppress_last_bi
     return URTH1(edges=xedges, sumw=sumw, sumw2=sumw2)
 
 def legacy_limit_input_vbf(acc,
-    distribution='cnn_score',
+    distribution='particlenet_score',
     outdir='./output', 
     unblind=False, 
     years=[2017, 2018], 
@@ -224,9 +226,11 @@ def legacy_limit_input_vbf(acc,
 
     # Get the distribution and pre-process
     h = copy.deepcopy(acc[distribution])
+
+    # Rebin the distribution
     if distribution == "particlenet_score":
-        newax = nn_score_ax()
         axname = 'score'
+        h = rebin_particlenet_score(h)
 
         # Integrate for the VBF-like score
         h = h.integrate("score_type", "VBF-like")
@@ -234,12 +238,10 @@ def legacy_limit_input_vbf(acc,
     elif distribution == 'mjj':
         newax = hist.Bin('mjj','$M_{jj}$ (GeV)', mjj_bins_2016())
         axname = 'mjj'
+        h = h.rebin(h.axis(newax.name), newax)
     
     else:
         raise RuntimeError(f'Limit input for VBF is not supported for distribution: {distribution}')
-    
-    # Rebin the distribution
-    h = h.rebin(h.axis(newax.name), newax)
     
     h = merge_extensions(h, acc)
     scale_xs_lumi(h)
