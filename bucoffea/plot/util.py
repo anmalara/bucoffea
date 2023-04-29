@@ -313,6 +313,8 @@ def create_dataset_mapping(all_datasets):
         'GJets_SM_5f_EWK-mg_2018' : ['GJets_SM_5f_EWK-mg_2017'],
 
         'G1Jet_Pt-amcatnlo_2016' : [x for x in all_datasets if re.match('G1Jet_Pt-.*-amcatnlo_2016',x)],
+        
+        'G1Jet_LHEGPt-amcatnlo_2018' : [x for x in all_datasets if re.match('G1Jet_LHEGpT-.*-amcatnlo_2018',x)],
 
         'WJetsToLNu_Pt-FXFX_2017' : [x for x in all_datasets if re.match('WJetsToLNu_Pt-(\d+).*FXFX_2017',x)],
         'WJetsToLNu_Pt-FXFX_2018' : [x for x in all_datasets if re.match('WJetsToLNu_Pt-(\d+).*FXFX_2018',x)],
