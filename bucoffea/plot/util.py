@@ -95,6 +95,9 @@ def rebin_particlenet_score(h):
             new_bins.append(ibin.lo)
             i += 1
 
+    # Append the high-end of the last bin
+    new_bins.append(1)
+
     newax = hist.Bin("score", "Neural network score", new_bins)
     h = h.rebin("score", newax)
 
