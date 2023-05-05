@@ -7,7 +7,7 @@ import re
 from matplotlib import pyplot as plt
 from coffea import hist
 
-from bucoffea.plot.util import merge_extensions, scale_xs_lumi
+from bucoffea.plot.util import merge_extensions, scale_xs_lumi, merge_datasets
 from klepto.archives import dir_archive
 
 pjoin = os.path.join
@@ -20,8 +20,10 @@ def plot_photon_pt(acc, outdir, distribution="photon_pt0", dataset="G1Jet.*LHEGp
     h = merge_extensions(h, acc, reweight_pu=False)
     scale_xs_lumi(h)
 
-    h = h.integrate("region", region)[re.compile(dataset)]
-    # h = h[re.compile(dataset)].integrate("type","Nano")
+    if distribution == "genvpt_check":
+        h = h[re.compile(dataset)].integrate("type","Nano")
+    else:
+        h = h.integrate("region", region)[re.compile(dataset)]
 
     fig, ax = plt.subplots()
 
@@ -30,8 +32,11 @@ def plot_photon_pt(acc, outdir, distribution="photon_pt0", dataset="G1Jet.*LHEGp
     ax.set_yscale("log")
     ax.set_ylim(1e0,1e6)
 
-    ax.set_xlim(left=230)
-    ax.set_xlabel(r"Offline Photon $p_T$ (GeV)")
+    if distribution == "genvpt_check":
+        ax.set_xlabel(r"GEN Photon $p_T$ (GeV)")
+    else:
+        ax.set_xlim(left=230)
+        ax.set_xlabel(r"Offline Photon $p_T$ (GeV)")
 
     ax.text(0,1,r"$\gamma$ + jets CR",
         fontsize=14,
@@ -62,7 +67,8 @@ def main():
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    plot_photon_pt(acc, outdir)
+    for distribution in ["photon_pt0", "genvpt_check"]:
+        plot_photon_pt(acc, outdir, distribution=distribution)
 
 if __name__ == "__main__":
     main()
