@@ -92,7 +92,7 @@ def do_worker(args):
                                   processor_instance=choose_processor(args)(),
                                   executor=processor.futures_executor,
                                   executor_args={'workers': args.jobs, 'flatten': True},
-                                  chunksize=50000,
+                                  chunksize=int(args.eventsperjob),
                                  )
 
     # Save output
@@ -215,15 +215,15 @@ def do_submit(args):
 
     for dataset, files in dataset_files.items():
         print(f"Writing submission files for dataset: {dataset}.")
-
-        if args.filesperjob:
-            filesperjob = get_files_per_job(dataset,time_per_job = 3)
-            if filesperjob<0:
-                filesperjob = args.filesperjob
+        filesperjob = get_files_per_job(dataset,time_per_job = 3)
+        eventsperjob = int(args.eventsperjob)
+        if any([x in dataset for x in ['Z2JetsToNuNu_M-50_LHEFilterPtZ-250To400', 'G1Jet_LHEGpT-675ToInf']]):
+            eventsperjob = 1000
+        if args.filesperjob and filesperjob>0:
             nchunk = math.ceil(len(files)/filesperjob)
             chunks = chunk_by_files(files, nchunk=int(nchunk))
         else:
-            chunks = chunk_by_events(files, chunksize=args.eventsperjob, workers=8)
+            chunks = chunk_by_events(files, chunksize=eventsperjob, workers=8)
         for ichunk, chunk in enumerate(chunks):
             # Save input files to a txt file and send to job
             tmpfile = pjoin(subdir, filedir, f"input_{dataset}_{ichunk:03d}of{len(chunks):03d}.txt")
@@ -240,7 +240,8 @@ def do_submit(args):
                 'worker',
                 f'--dataset {dataset}',
                 f'--filelist {os.path.basename(tmpfile)}',
-                f'--chunk {ichunk}'
+                f'--chunk {ichunk}',
+                f'--eventsperjob {eventsperjob}'
             ]
 
             job_input_files = input_files + [
@@ -332,13 +333,14 @@ def main():
     parser_run.add_argument('--dataset', type=str, help='Dataset name to run over.')
     parser_run.add_argument('--filelist', type=str, help='Text file with file names to run over.')
     parser_run.add_argument('--chunk', type=str, help='Number of this chunk for book keeping.')
+    parser_run.add_argument('--eventsperjob', type=int, default=5*1e4, help='Number of events to process per job')
     parser_run.set_defaults(func=do_worker)
 
     # Arguments passed to the "submit" operation
     parser_submit = subparsers.add_parser('submit', help='Submission help')
     parser_submit.add_argument('--dataset', type=str, help='Dataset regex to use.')
     parser_submit.add_argument('--filesperjob', type=int, default=None, help='Number of files to process per job')
-    parser_submit.add_argument('--eventsperjob', type=int, default=1e6, help='Number of events to process per job')
+    parser_submit.add_argument('--eventsperjob', type=int, default=5*1e4, help='Number of events to process per job')
     parser_submit.add_argument('--name', type=str, default=None, help='Name to identify this submission')
     parser_submit.add_argument('--prefetch', action="store_true", default=False, help='Prefetch input files on worker but run over xrootd.')
     parser_submit.add_argument('--no-prefetch', action="store_true", default=False, help='DEPRECATED. Prefetching is now disabled by default. Use --prefetch to activate prefetching.')

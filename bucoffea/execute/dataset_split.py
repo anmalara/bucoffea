@@ -17,6 +17,7 @@ def get_files_per_job(dataset,time_per_job = 3):
                         'EWKZ2Jets_ZToLL': 3,
                         'EWKZ2Jets_ZToNuNu': 4,
                         'GJets_DR-0p4': 30,
+                        'G1Jet': 30,
                         'VBFGamma_5f_DipoleRecoil-mg': 10,
                         'WJetsToLNu_Pt-100To250': 3,
                         'WJetsToLNu_Pt-250To400': 1,
