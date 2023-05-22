@@ -14,7 +14,8 @@ from coffea import hist
 from bucoffea.plot.util import (
     merge_datasets, 
     merge_extensions, 
-    scale_xs_lumi, 
+    scale_xs_lumi,
+    rebin_particlenet_score,
     URTH1
     )
 
@@ -164,7 +165,9 @@ def mjj_bins_2016():
 
 def nn_score_ax() -> hist.Bin:
     """Returns the new binning for the neural network score."""
-    new_ax = hist.Bin("score", "Neural network score", 50, 0, 1)
+    # new_ax = hist.Bin("score", "Neural network score", 25, 0, 1)
+    edges = [0, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.22, 0.24, 0.26, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0]
+    new_ax = hist.Bin("score", "Neural network score", edges)
     return new_ax
 
 
@@ -191,7 +194,7 @@ def export_coffea_histogram(h, overflow='over', axname='score', suppress_last_bi
     return URTH1(edges=xedges, sumw=sumw, sumw2=sumw2)
 
 def legacy_limit_input_vbf(acc,
-    distribution='cnn_score',
+    distribution='particlenet_score',
     outdir='./output', 
     unblind=False, 
     years=[2017, 2018], 
@@ -227,6 +230,7 @@ def legacy_limit_input_vbf(acc,
     if distribution == "particlenet_score":
         newax = nn_score_ax()
         axname = 'score'
+        h = rebin_particlenet_score(h)
 
         # Integrate for the VBF-like score
         h = h.integrate("score_type", "VBF-like")
@@ -234,12 +238,11 @@ def legacy_limit_input_vbf(acc,
     elif distribution == 'mjj':
         newax = hist.Bin('mjj','$M_{jj}$ (GeV)', mjj_bins_2016())
         axname = 'mjj'
+        # Rebin the distribution
+        h = h.rebin(h.axis(newax.name), newax)
     
     else:
         raise RuntimeError(f'Limit input for VBF is not supported for distribution: {distribution}')
-    
-    # Rebin the distribution
-    h = h.rebin(h.axis(newax.name), newax)
     
     h = merge_extensions(h, acc)
     scale_xs_lumi(h)
@@ -251,7 +254,7 @@ def legacy_limit_input_vbf(acc,
 
         with open(infofile, 'w+') as infof:
             # Output ROOT file we're going to save (per year)
-            f = uproot.recreate(pjoin(outdir, f'legacy_limit_vbf_{year}.root'))
+            f = uproot.recreate(pjoin(outdir, f'legacy_limit_vbf_{distribution}_{year}.root'))
             data, mc = datasets(year, include_sr_data=unblind or one_fifth_unblind)
 
             # Loop over regions and make histograms
@@ -305,24 +308,24 @@ def legacy_limit_input_vbf(acc,
     
     # Merge the 2017 and 2018 histograms into a single file
     # under separate sub-directories
-    merge_legacy_inputs(outdir)
+    merge_legacy_inputs(outdir, distribution)
 
-def merge_legacy_inputs(outdir):
+def merge_legacy_inputs(outdir, distribution):
     '''
     Workaround for uproot's lack of subdirectory support.
     '''
 
     files = defaultdict(dict)
     for fname in os.listdir(outdir):
-        m = re.match('legacy_limit_([a-z]*)_(\d+).root', fname)
+        m = re.match(f'legacy_limit_([a-z]*)_{distribution}_(\d+).root', fname)
         if not m:
             continue
         category, year = m.groups()
-        files[year][category] = pjoin(outdir, fname)
+        files[category][year] = pjoin(outdir, fname)
 
-    outfile = r.TFile(pjoin(outdir, f'legacy_limit_vbf.root'),'RECREATE')
-    for year, ifiles in files.items():
-        for category, file in ifiles.items():
+    for category, ifiles in files.items():
+        outfile = r.TFile(pjoin(outdir, f'legacy_limit_{category}_{distribution}.root'),'RECREATE')
+        for year, file in ifiles.items():
             subdir = outfile.mkdir(f'category_{category}_{year}')
             infile = r.TFile(file)
             for key in infile.GetListOfKeys():
@@ -330,6 +333,6 @@ def merge_legacy_inputs(outdir):
                 h = key.ReadObj().Clone()
                 h.SetTitle(h.GetName())
                 h.SetDirectory(subdir)
-                h.GetXaxis().SetTitle('mjj')
+                h.GetXaxis().SetTitle(distribution)
                 suppress_negative_bins(h)
                 subdir.Write()
