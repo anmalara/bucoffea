@@ -4,6 +4,7 @@ import os
 import uproot
 import re
 import sys
+import math
 import argparse
 import numpy as np
 import ROOT as r
@@ -16,7 +17,7 @@ from coffea.util import load
 from pprint import pprint
 from matplotlib import pyplot as plt
 from klepto.archives import dir_archive
-from bucoffea.plot.util import scale_xs_lumi, merge_extensions, merge_datasets
+from bucoffea.plot.util import scale_xs_lumi, merge_extensions, merge_datasets, rebin_particlenet_score
 
 pjoin = os.path.join
 
@@ -66,11 +67,15 @@ def from_coffea(inpath, outfile, variable='cnn_score', years=[2017, 2018]):
         if variable == 'mjj':
             mjj_ax = hist.Bin('mjj', r'$M_{jj}$ (GeV)', [200, 400, 600, 900, 1200, 1500, 2000, 2750, 3500, 5000])
             acc[distribution] = acc[distribution].rebin(acc[distribution].axis('mjj'), mjj_ax)
+        
         elif variable == 'particlenet_score':
-            score_ax = hist.Bin("score", "ParticleNet score", 50, 0, 1)
-            acc[distribution] = acc[distribution].rebin(acc[distribution].axis('score'), score_ax)
+            acc[distribution] = rebin_particlenet_score(acc[distribution])
+
         else:
             raise ValueError(f'Unsupported variable name: {variable}')
+
+        if distribution == "particlenet_score":
+            acc[distribution] = acc[distribution].integrate("score_type", "VBF-like")
 
     f = uproot.recreate(outfile)
     
@@ -90,7 +95,7 @@ def from_coffea(inpath, outfile, variable='cnn_score', years=[2017, 2018]):
         # Scale + PDF variations for QCD Z(vv)
         h_z_unc = acc[f'{variable}_unc'][re.compile(f'ZNJetsToNuNu_M-50_LHEFilterPtZ-FXFX_{year}')].integrate('region', 'sr_vbf_no_veto_all').integrate('dataset')
         for unc in map(str, h_z_unc.axis('uncertainty').identifiers()):
-            if 'goverz' in unc or 'ewkcorr' in unc:
+            if 'goverz' in unc or 'ewkcorr' in unc or 'puSF' in unc:
                 continue
             h = h_z_unc.integrate(h_z_unc.axis('uncertainty'), unc)
             f[f'z_qcd_{variable}_{unc}_{year}'] = export1d(h)
@@ -120,7 +125,7 @@ def from_coffea(inpath, outfile, variable='cnn_score', years=[2017, 2018]):
         # Scale + PDF variations for QCD gamma+jets
         h_ph_unc = acc[f'{variable}_unc'][re.compile(f'GJets_DR-0p4_HT_MLM_{year}')].integrate('region', 'cr_g_vbf').integrate('dataset')
         for unc in map(str, h_ph_unc.axis('uncertainty').identifiers()):
-            if 'zoverw' in unc or 'ewkcorr' in unc:
+            if 'zoverw' in unc or 'ewkcorr' in unc or 'puSF' in unc:
                 continue
             h = h_ph_unc.integrate(h_ph_unc.axis('uncertainty'), unc)
             f[f'gjets_qcd_{variable}_{unc}_{year}'] = export1d(h)
@@ -149,7 +154,7 @@ def from_coffea(inpath, outfile, variable='cnn_score', years=[2017, 2018]):
         # Scale + PDF variations for EWK Z
         h_z_unc = acc[f'{variable}_unc'][re.compile(f'EWKZ2Jets.*ZToNuNu.*{year}')].integrate('region', 'sr_vbf_no_veto_all').integrate('dataset')
         for unc in map(str, h_z_unc.axis('uncertainty').identifiers()):
-            if 'goverz' in unc or 'ewkcorr' in unc:
+            if 'goverz' in unc or 'ewkcorr' in unc or 'puSF' in unc:
                 continue
             h = h_z_unc.integrate(h_z_unc.axis('uncertainty'), unc)
             f[f'z_ewk_{variable}_{unc}_{year}'] = export1d(h)
@@ -157,7 +162,7 @@ def from_coffea(inpath, outfile, variable='cnn_score', years=[2017, 2018]):
         # Scale + PDF variations for EWK photons
         h_ph_unc = acc[f'{variable}_unc'][re.compile(f'VBFGamma.*{year}')].integrate('region', 'cr_g_vbf').integrate('dataset')
         for unc in map(str, h_ph_unc.axis('uncertainty').identifiers()):
-            if 'zoverw' in unc or 'ewkcorr' in unc:
+            if 'zoverw' in unc or 'ewkcorr' in unc or 'puSF' in unc:
                 continue
             h = h_ph_unc.integrate(h_ph_unc.axis('uncertainty'), unc)
             f[f'gjets_ewk_{variable}_{unc}_{year}'] = export1d(h)
@@ -368,7 +373,7 @@ def main():
     outdir = f'./output/{outtag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    outfile = pjoin(outdir, f'vbf_z_w_gjets_theory_unc.root')
+    outfile = pjoin(outdir, f'vbf_z_w_gjets_theory_unc_{args.variable}.root')
 
     # Prepare histograms for individual variations for Z(vv), W(lv) and gamma+jets
     from_coffea(

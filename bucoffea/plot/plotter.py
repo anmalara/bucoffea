@@ -95,8 +95,10 @@ binnings = {
 }
 
 ylims = {
-    'ak4_eta0' : (1e-3,1e5),
-    'ak4_eta1' : (1e-3,1e5),
+    'ak4_eta0' : (1e-3,1e8),
+    'ak4_eta1' : (1e-3,1e8),
+    'ak4_pt0'  : (1e-1,1e7),
+    'ak4_pt1'  : (1e-1,1e7),
     'ak4_nef0' : (1e0,1e8),
     'ak4_nef1' : (1e0,1e8),
     'ak4_nhf0' : (1e0,1e8),
@@ -117,6 +119,7 @@ Znn  = 'Z$\\rightarrow\\nu\\nu$'
 Wln  = 'W$\\rightarrow\\ell\\nu$'
 legend_labels = {
     'GJets_(DR-0p4).*':                          f'QCD {gjet}',
+    'G1Jet_LHEGPt-amcatnlo.*' : "NLO@QCD $\\gamma$+jets",
     '(VBFGamma|GJets_SM.*EWK).*':                f'EWK {gjet}',
     'DY.*':                                      f'QCD {Zll}',
     'EWKZ.*ZToLL.*':                             f'EWK {Zll}',
@@ -172,6 +175,7 @@ colors = {
     'ZN*JetsToNuNu.*' : '#31a354',
     'WJets.*' : '#feb24c',
     'GJets_(DR-0p4|HT).*' : '#fc4e2a',
+    'G1Jet_LHEGPt-amcatnlo.*' : '#fc4e2a',
     '(VBFGamma|GJets_SM.*EWK).*' : '#a76b51',
     'QCD.*' : '#a6bddb',
 }

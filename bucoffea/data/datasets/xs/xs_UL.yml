@@ -268,6 +268,26 @@ G1Jet_Pt-650ToInf-amcatnlo_2016:
   gen: 0.2939
 G1Jet_Pt-650ToInf-amcatnlo_ext1_2016:
   gen: 0.2939
+G1Jet_LHEGpT-100To150-amcatnlo_2018:
+  gen: 442.7
+G1Jet_LHEGpT-150To250-amcatnlo_2018:
+  gen: 225.6
+G1Jet_LHEGpT-150To250-amcatnlo_ext1_2018:
+  gen: 228.1
+G1Jet_LHEGpT-250To400-amcatnlo_2018:
+  gen: 27.09
+G1Jet_LHEGpT-250To400-amcatnlo_ext1_2018:
+  gen: 27.17
+G1Jet_LHEGpT-400To675-amcatnlo_2018:
+  gen: 3.393
+G1Jet_LHEGpT-400To675-amcatnlo_ext1_2018:
+  gen: 3.399
+G1Jet_LHEGpT-50To100-amcatnlo_2018:
+  gen: 5775.0
+G1Jet_LHEGpT-675ToInf-amcatnlo_2018:
+  gen: 0.2473
+G1Jet_LHEGpT-675ToInf-amcatnlo_ext1_2018:
+  gen: 0.2477
 GJets_1j_Gpt-100To250_5f_NLO-amcatnlo_2017:
   gen: 1183.0
 GJets_1j_Gpt-100To250_5f_NLO_2017:

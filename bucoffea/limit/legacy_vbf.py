@@ -227,8 +227,9 @@ def legacy_limit_input_vbf(acc,
 
     # Get the distribution and pre-process
     h = copy.deepcopy(acc[distribution])
+
+    # Rebin the distribution
     if distribution == "particlenet_score":
-        newax = nn_score_ax()
         axname = 'score'
         h = rebin_particlenet_score(h)
 
